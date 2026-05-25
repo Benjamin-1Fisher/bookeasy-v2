@@ -35,6 +35,7 @@
 - `tailwindcss` - MIT
 - `zod` - MIT
 - `lucide-react` - ISC
+- `@fontsource/heebo` - SIL Open Font License 1.1 עבור פונט Heebo בעברית
 - `eslint` ו-`typescript` - רישיונות קוד פתוח נפוצים, לשימוש פיתוח
 
 לפני השקה מסחרית מומלץ להריץ בדיקת רישיונות אוטומטית מלאה מתוך `package-lock.json`.

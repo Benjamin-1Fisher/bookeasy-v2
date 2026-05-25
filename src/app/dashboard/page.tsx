@@ -3,8 +3,9 @@ import { getAdminSummary } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const summary = await getAdminSummary();
+export default async function DashboardPage({ searchParams }: { searchParams?: Promise<{ businessId?: string }> }) {
+  const params = await searchParams;
+  const summary = await getAdminSummary(params?.businessId);
 
   return <DashboardShell initialData={summary} />;
 }

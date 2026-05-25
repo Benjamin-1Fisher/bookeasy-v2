@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import {
+  BadgeDollarSign,
   CalendarClock,
   CalendarDays,
   Check,
@@ -17,7 +19,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { BusinessIcon, businessIconOptions } from "@/components/ui/BusinessIcon";
 import { bookingStatusLabels, dayNames, formatDuration, formatPrice } from "@/lib/format";
+import { launchPlan } from "@/lib/pricing";
 import type { AvailabilityRule, Booking, BookingStatus, Business, DemoRequest, Service } from "@/lib/types";
 
 type SummaryCards = {
@@ -28,6 +32,7 @@ type SummaryCards = {
 };
 
 type DashboardInitialData = {
+  businesses: Business[];
   business: Business;
   services: Service[];
   bookings: Booking[];
@@ -47,7 +52,21 @@ const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
   { id: "bookings", label: "הזמנות", icon: ClipboardList },
   { id: "services", label: "שירותים", icon: Settings },
   { id: "availability", label: "זמינות", icon: CalendarDays },
-  { id: "profile", label: "פרופיל ולינק", icon: LinkIcon },
+  { id: "profile", label: "עמוד העסק", icon: LinkIcon },
+];
+
+const toneOptions: Array<{ value: Business["coverTone"]; label: string }> = [
+  { value: "teal", label: "ירוק מקצועי" },
+  { value: "rose", label: "ורוד עדין" },
+  { value: "blue", label: "כחול רגוע" },
+];
+
+const categoryOptions: Array<{ value: Business["category"]; label: string }> = [
+  { value: "barber", label: "מספרה / ברבר" },
+  { value: "nails", label: "קוסמטיקה / ציפורניים" },
+  { value: "clinic", label: "קליניקה" },
+  { value: "fitness", label: "אימון אישי" },
+  { value: "other", label: "אחר" },
 ];
 
 const emptyService = {
@@ -78,7 +97,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
   const upcomingBookings = bookings.filter((booking) => booking.date >= today && booking.status !== "cancelled");
 
   async function refreshSummary() {
-    const response = await fetch("/api/admin/summary");
+    const response = await fetch(`/api/admin/summary?businessId=${business.id}`);
     const data = (await response.json()) as DashboardInitialData & { error?: string };
 
     if (!response.ok) {
@@ -100,14 +119,33 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f7f2]">
+    <main className="min-h-screen bg-background">
       <header className="border-b border-line bg-white">
         <div className="container-shell flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm font-bold text-primary">לוח ניהול</p>
-            <h1 className="text-3xl font-black text-foreground">{business.name}</h1>
+          <div className="flex items-center gap-4">
+            <span className="icon-tile size-12">
+              <BusinessIcon value={business.businessIcon} className="size-6" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-primary">לוח ניהול</p>
+              <h1 className="text-3xl font-extrabold text-foreground">{business.name}</h1>
+            </div>
           </div>
           <div className="flex flex-wrap gap-3">
+            <select
+              value={business.id}
+              onChange={(event) => {
+                window.location.href = `/dashboard?businessId=${event.target.value}`;
+              }}
+              className="focus-ring min-h-11 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-bold text-foreground"
+              aria-label="בחירת עסק לעריכה"
+            >
+              {initialData.businesses.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
             <CopyButton value={bookingLink} label="העתק לינק הזמנות" />
             <a
               href={`/b/${business.slug}`}
@@ -132,7 +170,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={`focus-ring flex min-h-11 items-center gap-3 rounded-[8px] px-3 py-2 text-right font-bold transition ${
-                    activeTab === tab.id ? "bg-[#e8f3ef] text-primary" : "text-muted hover:bg-[#fbfaf6] hover:text-foreground"
+                    activeTab === tab.id ? "bg-[#e8f3ef] text-primary" : "text-muted hover:bg-[#f4f7f5] hover:text-foreground"
                   }`}
                 >
                   <Icon size={18} aria-hidden="true" />
@@ -238,6 +276,8 @@ function OverviewTab({
 }) {
   return (
     <>
+      <LaunchPriceNotice />
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           ["סך כל ההזמנות", cards.totalBookings],
@@ -247,7 +287,7 @@ function OverviewTab({
         ].map(([label, value]) => (
           <article key={label} className="soft-card rounded-[8px] p-5">
             <p className="text-sm font-bold text-muted">{label}</p>
-            <p className="mt-3 text-3xl font-black text-foreground">{value}</p>
+            <p className="mt-3 text-3xl font-extrabold text-foreground">{value}</p>
           </article>
         ))}
       </div>
@@ -275,8 +315,8 @@ function OverviewTab({
           {demoRequests.length ? (
             <div className="grid gap-3">
               {demoRequests.slice(0, 3).map((request) => (
-                <div key={request.id} className="rounded-[8px] border border-line bg-[#fbfaf6] p-4">
-                  <p className="font-black">{request.ownerName}</p>
+                <div key={request.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+                  <p className="font-extrabold">{request.ownerName}</p>
                   <p className="mt-1 text-sm text-muted">
                     {request.businessType} · <span className="ltr inline-block">{request.phone}</span>
                   </p>
@@ -503,7 +543,7 @@ function ServicesTab({
               className="focus-ring rounded-[8px] border border-line px-3 py-3"
             />
           </Field>
-          <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-3 font-black text-white">
+          <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-3 font-extrabold text-white">
             <Plus size={18} aria-hidden="true" />
             הוסף
           </button>
@@ -514,7 +554,7 @@ function ServicesTab({
         {services.length ? (
           <div className="grid gap-3">
             {services.map((service) => (
-              <div key={service.id} className="rounded-[8px] border border-line bg-[#fbfaf6] p-4">
+              <div key={service.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
                 <div className="grid gap-3 lg:grid-cols-[1fr_1fr_110px_120px_auto] lg:items-end">
                   <Field label="שם שירות">
                     <input
@@ -562,7 +602,7 @@ function ServicesTab({
                     <button
                       type="button"
                       onClick={() => save(service)}
-                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-black text-white"
+                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-extrabold text-white"
                     >
                       <Save size={16} aria-hidden="true" />
                       שמור
@@ -570,7 +610,7 @@ function ServicesTab({
                     <button
                       type="button"
                       onClick={() => save({ ...service, isActive: !service.isActive })}
-                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-black"
+                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-extrabold"
                     >
                       <ToggleLeft size={16} aria-hidden="true" />
                       {service.isActive ? "כבה" : "הפעל"}
@@ -578,7 +618,7 @@ function ServicesTab({
                     <button
                       type="button"
                       onClick={() => remove(service.id)}
-                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-red-100 bg-white px-3 py-2 text-sm font-black text-red-700"
+                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-red-100 bg-white px-3 py-2 text-sm font-extrabold text-red-700"
                     >
                       <Trash2 size={16} aria-hidden="true" />
                       מחק
@@ -660,8 +700,8 @@ function AvailabilityTab({
       </p>
       <div className="grid gap-3">
         {normalizedRules.map((rule) => (
-          <div key={rule.dayOfWeek} className="grid gap-3 rounded-[8px] border border-line bg-[#fbfaf6] p-4 sm:grid-cols-[130px_1fr_1fr] sm:items-center">
-            <label className="flex items-center gap-3 font-black">
+          <div key={rule.dayOfWeek} className="grid gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 sm:grid-cols-[130px_1fr_1fr] sm:items-center">
+            <label className="flex items-center gap-3 font-extrabold">
               <input
                 type="checkbox"
                 checked={rule.isActive}
@@ -691,7 +731,7 @@ function AvailabilityTab({
           </div>
         ))}
       </div>
-      <button onClick={save} className="focus-ring mt-5 inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-black text-white">
+      <button onClick={save} className="focus-ring mt-5 inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white">
         <Save size={18} aria-hidden="true" />
         שמור זמינות
       </button>
@@ -717,7 +757,7 @@ function ProfileTab({
     const response = await fetch("/api/admin/business", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(business),
+      body: JSON.stringify({ ...business, businessId: business.id }),
     });
     const data = (await response.json()) as { business?: Business; error?: string };
 
@@ -734,6 +774,34 @@ function ProfileTab({
     <div className="grid gap-5">
       <Panel title="הגדרות פרופיל עסק" icon={Settings}>
         <form onSubmit={save} className="grid gap-4">
+          <div className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <span className="icon-tile size-16 bg-white">
+                  <BusinessIcon value={business.businessIcon} className="size-8" />
+                </span>
+                <div>
+                  <p className="font-extrabold">אייקון העסק</p>
+                  <p className="text-sm text-muted">האייקון מופיע בראש דף ההזמנות של העסק.</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {businessIconOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setBusiness({ ...business, businessIcon: option.value })}
+                    className={`focus-ring grid size-10 place-items-center rounded-[8px] border ${
+                      business.businessIcon === option.value ? "border-primary bg-[#e8f3ef] text-primary" : "border-line bg-white text-muted"
+                    }`}
+                    aria-label={`בחירת אייקון ${option.label}`}
+                  >
+                    <BusinessIcon value={option.value} className="size-5" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="שם העסק">
               <input
@@ -751,6 +819,53 @@ function ProfileTab({
               />
             </Field>
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="לינק עמוד ההזמנות">
+              <input
+                dir="ltr"
+                value={business.slug}
+                onChange={(event) => setBusiness({ ...business, slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
+                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-right"
+                placeholder="barber-demo"
+              />
+            </Field>
+            <Field label="סוג העסק">
+              <select
+                value={business.category}
+                onChange={(event) => setBusiness({ ...business, category: event.target.value as Business["category"] })}
+                className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
+              >
+                {categoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="וואטסאפ">
+              <input
+                dir="ltr"
+                value={business.whatsapp}
+                onChange={(event) => setBusiness({ ...business, whatsapp: event.target.value })}
+                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-right"
+              />
+            </Field>
+            <Field label="צבע עמוד ההזמנות">
+              <select
+                value={business.coverTone}
+                onChange={(event) => setBusiness({ ...business, coverTone: event.target.value as Business["coverTone"] })}
+                className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
+              >
+                {toneOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
           <Field label="תיאור קצר">
             <input
               value={business.shortDescription}
@@ -765,6 +880,22 @@ function ProfileTab({
               className="focus-ring min-h-28 rounded-[8px] border border-line px-3 py-3"
             />
           </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="כותרת קאבר">
+              <input
+                value={business.coverTitle}
+                onChange={(event) => setBusiness({ ...business, coverTitle: event.target.value })}
+                className="focus-ring rounded-[8px] border border-line px-3 py-3"
+              />
+            </Field>
+            <Field label="תת כותרת קאבר">
+              <input
+                value={business.coverSubtitle}
+                onChange={(event) => setBusiness({ ...business, coverSubtitle: event.target.value })}
+                className="focus-ring rounded-[8px] border border-line px-3 py-3"
+              />
+            </Field>
+          </div>
           <Field label="כתובת">
             <input
               value={business.address}
@@ -772,7 +903,7 @@ function ProfileTab({
               className="focus-ring rounded-[8px] border border-line px-3 py-3"
             />
           </Field>
-          <button className="focus-ring inline-flex min-h-12 w-fit items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-black text-white">
+          <button className="focus-ring inline-flex min-h-12 w-fit items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white">
             <Save size={18} aria-hidden="true" />
             שמור פרופיל
           </button>
@@ -780,7 +911,7 @@ function ProfileTab({
       </Panel>
 
       <Panel title="לינק ההזמנות שלך" icon={LinkIcon}>
-        <div className="flex flex-col gap-3 rounded-[8px] border border-line bg-[#fbfaf6] p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 sm:flex-row sm:items-center sm:justify-between">
           <span className="ltr break-all text-right font-bold">{bookingLink}</span>
           <CopyButton value={bookingLink} />
         </div>
@@ -795,15 +926,15 @@ function BookingList({ bookings, services, compact = false }: { bookings: Bookin
       {bookings.map((booking) => {
         const service = services.find((item) => item.id === booking.serviceId);
         return (
-          <div key={booking.id} className="rounded-[8px] border border-line bg-[#fbfaf6] p-4">
+          <div key={booking.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="font-black">{booking.customerName}</p>
+                <p className="font-extrabold">{booking.customerName}</p>
                 <p className="mt-1 text-sm text-muted">
                   {service?.name ?? "שירות לא נמצא"} · <span className="ltr inline-block">{booking.startTime}</span>
                 </p>
               </div>
-              <span className="w-fit rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-black text-primary">
+              <span className="w-fit rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-extrabold text-primary">
                 {bookingStatusLabels[booking.status]}
               </span>
             </div>
@@ -815,12 +946,39 @@ function BookingList({ bookings, services, compact = false }: { bookings: Bookin
   );
 }
 
+function LaunchPriceNotice() {
+  return (
+    <section className="quiet-card rounded-[8px] bg-[#102f34] p-5 text-white">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="grid size-11 place-items-center rounded-[8px] bg-white/12 text-[#d7a44a]">
+            <BadgeDollarSign size={22} aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-sm font-bold text-[#d7a44a]">{launchPlan.badge}</p>
+            <h2 className="mt-1 text-2xl font-extrabold">
+              {launchPlan.name} ב-{launchPlan.priceLabel} {launchPlan.periodLabel}
+            </h2>
+            <p className="mt-1 text-white/75">{launchPlan.lockMessage}</p>
+          </div>
+        </div>
+        <Link
+          href="/#demo-form"
+          className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] bg-white px-4 py-2 text-sm font-bold text-foreground"
+        >
+          שמור מחיר השקה
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function Panel({ title, icon: Icon, children }: { title: string; icon: typeof LayoutDashboard; children: React.ReactNode }) {
   return (
     <section className="soft-card rounded-[8px] p-5">
       <div className="mb-5 flex items-center gap-2">
         <Icon size={20} className="text-primary" aria-hidden="true" />
-        <h2 className="text-xl font-black">{title}</h2>
+        <h2 className="text-xl font-extrabold">{title}</h2>
       </div>
       {children}
     </section>
@@ -842,7 +1000,7 @@ function EmptyState({ title, text }: { title: string; text: string }) {
       <div className="mx-auto grid size-11 place-items-center rounded-full bg-[#e8f3ef] text-primary">
         <Check size={20} aria-hidden="true" />
       </div>
-      <p className="mt-3 text-lg font-black">{title}</p>
+      <p className="mt-3 text-lg font-extrabold">{title}</p>
       <p className="mt-1 text-muted">{text}</p>
     </div>
   );

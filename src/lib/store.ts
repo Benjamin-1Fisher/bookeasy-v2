@@ -358,6 +358,10 @@ export async function patchBusiness(businessId: string, patch: Partial<Business>
       throw new Error("העסק לא נמצא");
     }
 
+    if (patch.slug && store.businesses.some((item) => item.id !== businessId && item.slug === patch.slug)) {
+      throw new Error("הלינק הזה כבר תפוס על ידי עסק אחר");
+    }
+
     Object.assign(business, patch, { updatedAt: new Date().toISOString() });
     return business;
   });
@@ -377,6 +381,7 @@ export async function getAdminSummary(businessId = "biz_barber") {
   const today = new Date().toISOString().slice(0, 10);
 
   return {
+    businesses: store.businesses,
     business,
     services,
     bookings,

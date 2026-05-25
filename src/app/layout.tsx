@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import "@fontsource/heebo/400.css";
+import "@fontsource/heebo/500.css";
+import "@fontsource/heebo/600.css";
+import "@fontsource/heebo/700.css";
+import "@fontsource/heebo/800.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

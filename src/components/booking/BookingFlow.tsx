@@ -117,7 +117,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
   if (!selectedService) {
     return (
       <div className="rounded-[8px] border border-line bg-white p-6 text-center">
-        <p className="text-lg font-black">אין שירותים פעילים כרגע</p>
+        <p className="text-lg font-extrabold">אין שירותים פעילים כרגע</p>
         <p className="mt-2 text-muted">כדאי ליצור קשר עם העסק כדי לבדוק זמינות.</p>
       </div>
     );
@@ -127,17 +127,20 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
     <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]" id="booking">
       <aside className="soft-card h-fit rounded-[8px] p-5">
         <p className="text-sm font-bold text-primary">שלב {step} מתוך 4</p>
-        <h2 className="mt-2 text-2xl font-black">בחירת תור</h2>
-        <div className="mt-5 grid gap-3">
+        <h2 className="mt-2 text-2xl font-extrabold">בחירת תור</h2>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#e8f3ef]">
+          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(step / 4) * 100}%` }} />
+        </div>
+        <div className="mt-5 grid gap-2">
           {[
             ["1", "בחירת שירות", Boolean(selectedServiceId)],
             ["2", "בחירת תאריך ושעה", Boolean(selectedSlot)],
             ["3", "פרטי לקוח", Boolean(form.customerName && form.customerPhone)],
             ["4", "אישור הזמנה", Boolean(booking)],
           ].map(([number, label, done]) => (
-            <div key={String(label)} className="flex items-center gap-3 rounded-[8px] bg-[#fbfaf6] p-3">
+            <div key={String(label)} className="flex items-center gap-3 rounded-[8px] bg-[#f4f7f5] p-3">
               <span
-                className={`grid size-8 place-items-center rounded-full text-sm font-black ${
+                className={`grid size-8 place-items-center rounded-full text-sm font-extrabold ${
                   done ? "bg-primary text-white" : "bg-white text-muted"
                 }`}
               >
@@ -157,7 +160,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
             <section className="soft-card rounded-[8px] p-5">
               <div className="flex items-center gap-2">
                 <MessageSquareText size={20} className="text-primary" aria-hidden="true" />
-                <h2 className="text-xl font-black">1. בוחרים שירות</h2>
+                <h2 className="text-xl font-extrabold">1. בוחרים שירות</h2>
               </div>
               <div className="mt-4 grid gap-3">
                 {activeServices.map((service) => (
@@ -171,16 +174,18 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
                       setSelectedServiceId(service.id);
                     }}
                     className={`focus-ring rounded-[8px] border p-4 text-right transition ${
-                      selectedServiceId === service.id ? "border-primary bg-[#e8f3ef]" : "border-line bg-white hover:border-primary"
+                      selectedServiceId === service.id
+                        ? "border-primary bg-[#e8f3ef] shadow-sm"
+                        : "border-line bg-white hover:border-primary hover:bg-[#f8fbf9]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-lg font-black">{service.name}</p>
+                        <p className="text-lg font-extrabold">{service.name}</p>
                         <p className="mt-1 leading-7 text-muted">{service.description}</p>
                       </div>
                       <div className="text-left">
-                        <p className="font-black text-primary">{formatPrice(service.price)}</p>
+                        <p className="font-extrabold text-primary">{formatPrice(service.price)}</p>
                         <p className="mt-1 text-sm font-bold text-muted">{formatDuration(service.durationMinutes)}</p>
                       </div>
                     </div>
@@ -192,7 +197,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
             <section className="soft-card rounded-[8px] p-5">
               <div className="flex items-center gap-2">
                 <CalendarDays size={20} className="text-primary" aria-hidden="true" />
-                <h2 className="text-xl font-black">2. בוחרים תאריך ושעה</h2>
+                <h2 className="text-xl font-extrabold">2. בוחרים תאריך ושעה</h2>
               </div>
               <label className="mt-4 grid max-w-xs gap-2 text-sm font-bold">
                 תאריך
@@ -230,7 +235,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
                         type="button"
                         disabled={!slot.available}
                         onClick={() => setSelectedSlot(slot)}
-                        className={`focus-ring ltr min-h-11 rounded-[8px] border px-3 py-2 text-center font-black transition ${
+                        className={`focus-ring ltr min-h-11 rounded-[8px] border px-3 py-2 text-center font-extrabold transition ${
                           selectedSlot?.startTime === slot.startTime
                             ? "border-primary bg-primary text-white"
                             : slot.available
@@ -253,7 +258,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
             <form onSubmit={submitBooking} className="soft-card rounded-[8px] p-5">
               <div className="flex items-center gap-2">
                 <UserRound size={20} className="text-primary" aria-hidden="true" />
-                <h2 className="text-xl font-black">3. משאירים פרטים</h2>
+                <h2 className="text-xl font-extrabold">3. משאירים פרטים</h2>
               </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold">
@@ -299,7 +304,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
 
               <button
                 disabled={!selectedSlot || submitting}
-                className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-black text-white transition hover:bg-[#0b5f5a] disabled:opacity-60 sm:w-auto"
+                className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white transition hover:bg-primary-strong disabled:opacity-60 sm:w-auto"
               >
                 {submitting ? "שומר הזמנה..." : "אישור הזמנה"}
                 <CheckCircle2 size={18} aria-hidden="true" />
@@ -318,23 +323,23 @@ function Confirmation({ business, service, booking }: { business: Business; serv
       <div className="mx-auto grid size-14 place-items-center rounded-full bg-[#e8f3ef] text-primary">
         <CheckCircle2 size={28} aria-hidden="true" />
       </div>
-      <h2 className="mt-5 text-3xl font-black">ההזמנה נשלחה</h2>
+      <h2 className="mt-5 text-3xl font-extrabold">ההזמנה נשלחה</h2>
       <p className="mx-auto mt-3 max-w-lg leading-8 text-muted">
         קיבלנו את הפרטים שלך. העסק יוכל לאשר את ההזמנה מתוך לוח הניהול.
       </p>
       <div className="mx-auto mt-6 grid max-w-lg gap-3 rounded-[8px] border border-line bg-white p-5 text-right">
         <p>
-          <span className="font-black">עסק:</span> {business.name}
+          <span className="font-extrabold">עסק:</span> {business.name}
         </p>
         <p>
-          <span className="font-black">שירות:</span> {service.name}
+          <span className="font-extrabold">שירות:</span> {service.name}
         </p>
         <p>
-          <span className="font-black">מועד:</span> {formatDate(booking.date)}, שעה{" "}
+          <span className="font-extrabold">מועד:</span> {formatDate(booking.date)}, שעה{" "}
           <span className="ltr inline-block">{booking.startTime}</span>
         </p>
         <p>
-          <span className="font-black">שם:</span> {booking.customerName}
+          <span className="font-extrabold">שם:</span> {booking.customerName}
         </p>
       </div>
     </section>

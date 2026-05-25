@@ -52,9 +52,9 @@ export function todayKey() {
 
 export function getBusinessToneClasses(tone: "teal" | "rose" | "blue") {
   const tones = {
-    teal: "from-[#123b3a] via-[#0f766e] to-[#f4b860]",
-    rose: "from-[#3a2332] via-[#be5a6a] to-[#f4b860]",
-    blue: "from-[#17343a] via-[#466c8b] to-[#82c0cc]",
+    teal: "from-[#0d3032] via-[#0d6b62] to-[#9fb6a6]",
+    rose: "from-[#321d28] via-[#8f4e66] to-[#d2a37f]",
+    blue: "from-[#102f34] via-[#315d70] to-[#9bb8bd]",
   };
 
   return tones[tone];

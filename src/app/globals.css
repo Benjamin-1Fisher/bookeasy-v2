@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f7f2;
-  --foreground: #17343a;
+  --background: #f4f7f5;
+  --foreground: #0e2b30;
   --surface: #ffffff;
-  --muted: #617174;
-  --line: #dedbd2;
-  --primary: #0f766e;
-  --primary-strong: #0b5f5a;
-  --accent: #e66f51;
-  --warning: #f4b860;
+  --muted: #5a6e70;
+  --line: #dfe8e3;
+  --primary: #0b6f64;
+  --primary-strong: #07574f;
+  --accent: #bd8b37;
+  --warning: #d7a44a;
+  --ink: #0b2529;
+  --rose: #9b5368;
+  --blue: #375f6e;
 }
 
 @theme inline {
@@ -19,15 +22,19 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
   --color-accent: var(--accent);
-  --font-sans: "Noto Sans Hebrew", "Segoe UI", Arial, sans-serif;
+  --font-sans: "Heebo", "Segoe UI", Arial, sans-serif;
   --font-mono: "Cascadia Code", "Segoe UI Mono", monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Noto Sans Hebrew", "Segoe UI", Arial, sans-serif;
+  font-family: "Heebo", "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
 }
 
 * {
@@ -68,7 +75,7 @@ button:disabled {
 }
 
 .focus-ring:focus-visible {
-  outline-color: var(--accent);
+  outline-color: var(--primary);
 }
 
 .ltr {
@@ -78,6 +85,46 @@ button:disabled {
 
 .soft-card {
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 18px 60px rgba(23, 52, 58, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 44px rgba(14, 43, 48, 0.08);
+}
+
+.quiet-card {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.surface-input {
+  border: 1px solid var(--line);
+  background: #fff;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.surface-input:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(8, 118, 111, 0.12);
+}
+
+.elegant-gradient {
+  background:
+    linear-gradient(135deg, rgba(11, 111, 100, 0.1), transparent 42%),
+    linear-gradient(315deg, rgba(189, 139, 55, 0.14), transparent 36%),
+    var(--background);
+}
+
+.icon-tile {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #e8f3ef;
+  color: var(--primary);
+}
+
+.gold-chip {
+  border: 1px solid rgba(189, 139, 55, 0.28);
+  background: rgba(255, 248, 229, 0.84);
+  color: #7a5720;
 }

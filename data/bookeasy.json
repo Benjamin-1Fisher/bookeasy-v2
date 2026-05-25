@@ -3,6 +3,7 @@
     {
       "id": "biz_barber",
       "slug": "barber-demo",
+      "businessIcon": "scissors",
       "name": "ברבר סטודיו",
       "category": "barber",
       "description": "סטודיו דמיוני לתספורות, זקן וטיפוח לגברים. בוחרים שירות, שעה פנויה ופרטים, וההזמנה נכנסת בצורה מסודרת.",
@@ -21,6 +22,7 @@
     {
       "id": "biz_nails",
       "slug": "nails-demo",
+      "businessIcon": "sparkles",
       "name": "נייל סטודיו",
       "category": "nails",
       "description": "סטודיו דמיוני לטיפוח ציפורניים. לקוחות בוחרות טיפול ושעה בלי לשאול שוב ושוב מה פנוי.",
@@ -39,6 +41,7 @@
     {
       "id": "biz_clinic",
       "slug": "clinic-demo",
+      "businessIcon": "heart-pulse",
       "name": "קליניקת איזון",
       "category": "clinic",
       "description": "קליניקה דמיונית לפגישות ייעוץ וטיפול אישי. דף הזמנות רגוע וברור שמצמצם תיאומים ידניים.",

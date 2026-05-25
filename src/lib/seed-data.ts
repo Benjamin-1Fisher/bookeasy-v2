@@ -7,6 +7,7 @@ export const seedStore: BookeasyStore = {
     {
       id: "biz_barber",
       slug: "barber-demo",
+      businessIcon: "scissors",
       name: "ברבר סטודיו",
       category: "barber",
       description:
@@ -26,6 +27,7 @@ export const seedStore: BookeasyStore = {
     {
       id: "biz_nails",
       slug: "nails-demo",
+      businessIcon: "sparkles",
       name: "נייל סטודיו",
       category: "nails",
       description:
@@ -45,6 +47,7 @@ export const seedStore: BookeasyStore = {
     {
       id: "biz_clinic",
       slug: "clinic-demo",
+      businessIcon: "heart-pulse",
       name: "קליניקת איזון",
       category: "clinic",
       description:

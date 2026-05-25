@@ -63,6 +63,25 @@ export const availabilityUpdateSchema = z.object({
 });
 
 export const businessPatchSchema = z.object({
+  businessId: z.string().min(1, "חסר מזהה עסק").optional(),
+  slug: z
+    .string()
+    .trim()
+    .min(3, "הלינק קצר מדי")
+    .max(60, "הלינק ארוך מדי")
+    .regex(/^[a-z0-9-]+$/, "אפשר להשתמש רק באותיות באנגלית, מספרים ומקפים")
+    .optional(),
+  businessIcon: z
+    .string()
+    .trim()
+    .min(1, "צריך לבחור אייקון לעסק")
+    .max(40, "האייקון לא תקין")
+    .regex(/^[a-z-]+$/, "האייקון לא תקין")
+    .optional(),
+  category: z.enum(["barber", "nails", "clinic", "fitness", "other"]).optional(),
+  coverTitle: z.string().trim().min(4, "כותרת הקאבר קצרה מדי").max(120, "כותרת הקאבר ארוכה מדי").optional(),
+  coverSubtitle: z.string().trim().min(4, "תת הכותרת קצרה מדי").max(160, "תת הכותרת ארוכה מדי").optional(),
+  coverTone: z.enum(["teal", "rose", "blue"]).optional(),
   name: z.string().trim().min(2, "יש להזין שם עסק").max(90, "שם העסק ארוך מדי").optional(),
   description: z.string().trim().min(8, "התיאור קצר מדי").max(400, "התיאור ארוך מדי").optional(),
   shortDescription: z.string().trim().min(4, "התיאור הקצר קצר מדי").max(140, "התיאור הקצר ארוך מדי").optional(),

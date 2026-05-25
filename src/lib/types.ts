@@ -10,6 +10,7 @@ export type Business = {
   id: string;
   slug: string;
   name: string;
+  businessIcon: string;
   category: BusinessCategory;
   description: string;
   shortDescription: string;

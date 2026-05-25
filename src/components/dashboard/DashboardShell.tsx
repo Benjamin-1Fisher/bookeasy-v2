@@ -22,13 +22,13 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { BusinessIcon, businessIconOptions } from "@/components/ui/BusinessIcon";
 import { bookingStatusLabels, dayNames, formatDuration, formatPrice } from "@/lib/format";
 import { launchPlan } from "@/lib/pricing";
-import type { AvailabilityRule, Booking, BookingStatus, Business, DemoRequest, Service } from "@/lib/types";
+import type { AvailabilityRule, Booking, BookingStatus, Business, Service } from "@/lib/types";
 
 type SummaryCards = {
   totalBookings: number;
   upcomingBookings: number;
   popularService: string;
-  newDemoRequests: number;
+  totalBusinesses: number;
 };
 
 type DashboardInitialData = {
@@ -37,7 +37,6 @@ type DashboardInitialData = {
   services: Service[];
   bookings: Booking[];
   availabilityRules: AvailabilityRule[];
-  demoRequests: DemoRequest[];
   cards: SummaryCards;
 };
 
@@ -86,7 +85,6 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
   const [services, setServices] = useState(initialData.services);
   const [bookings, setBookings] = useState(initialData.bookings);
   const [availabilityRules, setAvailabilityRules] = useState(initialData.availabilityRules);
-  const [demoRequests] = useState(initialData.demoRequests);
   const [cards, setCards] = useState(initialData.cards);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -191,7 +189,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
               todayBookings={todayBookings}
               upcomingBookings={upcomingBookings}
               services={services}
-              demoRequests={demoRequests}
+              businesses={initialData.businesses}
               business={business}
               bookingLink={bookingLink}
             />
@@ -262,7 +260,7 @@ function OverviewTab({
   todayBookings,
   upcomingBookings,
   services,
-  demoRequests,
+  businesses,
   business,
   bookingLink,
 }: {
@@ -270,7 +268,7 @@ function OverviewTab({
   todayBookings: Booking[];
   upcomingBookings: Booking[];
   services: Service[];
-  demoRequests: DemoRequest[];
+  businesses: Business[];
   business: Business;
   bookingLink: string;
 }) {
@@ -283,7 +281,7 @@ function OverviewTab({
           ["סך כל ההזמנות", cards.totalBookings],
           ["הזמנות קרובות", cards.upcomingBookings],
           ["השירות הכי פופולרי", cards.popularService],
-          ["בקשות דמו חדשות", cards.newDemoRequests],
+          ["עמודים פעילים", cards.totalBusinesses],
         ].map(([label, value]) => (
           <article key={label} className="soft-card rounded-[8px] p-5">
             <p className="text-sm font-bold text-muted">{label}</p>
@@ -311,21 +309,23 @@ function OverviewTab({
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <Panel title="בקשות דמו חדשות" icon={ClipboardList}>
-          {demoRequests.length ? (
+        <Panel title="עמודים שנפתחו" icon={ClipboardList}>
+          {businesses.length ? (
             <div className="grid gap-3">
-              {demoRequests.slice(0, 3).map((request) => (
+              {businesses.slice(0, 3).map((business) => ({ ...business, businessType: `/b/${business.slug}` })).map((request) => (
                 <div key={request.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
-                  <p className="font-extrabold">{request.ownerName}</p>
+                  <p className="font-extrabold">{request.name}</p>
                   <p className="mt-1 text-sm text-muted">
                     {request.businessType} · <span className="ltr inline-block">{request.phone}</span>
                   </p>
-                  {request.message ? <p className="mt-2 text-sm leading-6 text-muted">{request.message}</p> : null}
+                  <Link className="mt-3 inline-flex text-sm font-extrabold text-primary" href={`/dashboard?businessId=${request.id}`}>
+                    עריכת עמוד
+                  </Link>
                 </div>
               ))}
             </div>
           ) : (
-            <EmptyState title="אין בקשות דמו" text="הטופס בדף הנחיתה יזין לכאן בקשות חדשות." />
+            <EmptyState title="אין עמודים עדיין" text="אחרי רכישה, בעל העסק יוצר כאן עמוד ומקבל לינק לפרסום." />
           )}
         </Panel>
 
@@ -431,7 +431,7 @@ function BookingsTab({
           </table>
         </div>
       ) : (
-        <EmptyState title="אין הזמנות להצגה" text="אפשר לשנות סינון או לפתוח את דף ההזמנות וליצור הזמנת דמו." />
+        <EmptyState title="אין הזמנות להצגה" text="אפשר לשנות סינון או לפתוח את דף ההזמנות וליצור הזמנה לבדיקה." />
       )}
     </Panel>
   );
@@ -963,10 +963,10 @@ function LaunchPriceNotice() {
           </div>
         </div>
         <Link
-          href="/#demo-form"
+          href="/#create-page"
           className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] bg-white px-4 py-2 text-sm font-bold text-foreground"
         >
-          שמור מחיר השקה
+          צור עמוד נוסף
         </Link>
       </div>
     </section>

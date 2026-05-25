@@ -53,7 +53,7 @@ const steps = [
 const quickActions = [
   {
     title: "דף הזמנה",
-    text: "פתיחה מיידית לדמו",
+    text: "פתיחה מיידית לעמוד",
     href: "/b/nails-demo",
     Icon: MousePointerClick,
     tone: "from-[#12272a] via-[#123b38] to-[#0f8f7f]",
@@ -66,9 +66,9 @@ const quickActions = [
     tone: "from-[#111f27] via-[#17324a] to-[#4b789b]",
   },
   {
-    title: "קבל דמו",
-    text: "השאירו פרטים",
-    href: "#demo-form",
+    title: "צור עמוד",
+    text: "קבל לינק לפרסום",
+    href: "#create-page",
     Icon: CalendarCheck,
     tone: "from-[#1b211f] via-[#2f2b1d] to-[#c8964b]",
   },
@@ -158,10 +158,10 @@ export default function Home() {
             ))}
           </div>
           <a
-            href="#demo-form"
+            href="#create-page"
             className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-bold text-white"
           >
-            קבל דמו
+            צור עמוד
             <ArrowLeft size={16} aria-hidden="true" />
           </a>
         </nav>
@@ -180,17 +180,17 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
-                href="#demo-form"
+                href="#create-page"
                 className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-[8px] bg-primary px-6 py-4 text-base font-extrabold text-white shadow-sm transition hover:bg-primary-strong"
               >
-                קבל דמו לעסק שלי
+                צור עמוד וקבל לינק
                 <ArrowLeft size={18} aria-hidden="true" />
               </a>
               <Link
                 href="/b/nails-demo"
                 className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-[8px] border border-line bg-white px-6 py-4 text-base font-extrabold text-foreground transition hover:border-primary"
               >
-                צפה בדמו
+                ראה איך זה נראה
                 <MousePointerClick size={18} aria-hidden="true" />
               </Link>
             </div>
@@ -265,7 +265,7 @@ export default function Home() {
       <section className="bg-[linear-gradient(135deg,#071114_0%,#102328_58%,#2b3126_140%)] py-16 text-white" id="demo">
         <div className="container-shell grid gap-8 lg:grid-cols-2">
           <div>
-            <p className="text-sm font-extrabold text-[#e2b467]">דמו של דף הזמנות</p>
+            <p className="text-sm font-extrabold text-[#e2b467]">תצוגת דף הזמנות</p>
             <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">ככה הלקוח רואה את העסק שלך</h2>
             <p className="mt-4 max-w-xl leading-8 text-white/75">
               בלי להסביר כל פעם מה פנוי. הלקוח רואה שירותים, מחירים ושעות, ומשאיר פרטים בצורה נקייה.
@@ -288,7 +288,7 @@ export default function Home() {
 
       <section className="container-shell grid gap-8 py-16 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <p className="text-sm font-extrabold text-primary">דמו של לוח ניהול</p>
+          <p className="text-sm font-extrabold text-primary">תצוגת לוח ניהול</p>
           <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">פשוט מספיק לבעל עסק עסוק</h2>
           <p className="mt-4 leading-8 text-muted">
             סקירה יומית, הזמנות קרובות, שירותים, זמינות, עריכת עמוד העסק ולינק הזמנות להעתקה. בלי מערכת כבדה ובלי תפריטים מבלבלים.
@@ -322,10 +322,10 @@ export default function Home() {
                 <p className="mt-2 text-sm font-bold text-accent">מחיר השקה שנשמר ל-5 שנים</p>
               </div>
               <a
-                href="#demo-form"
+                href="#create-page"
                 className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-bold text-white"
               >
-                שמור מחיר השקה
+                צור עמוד במחיר השקה
                 <ArrowLeft size={18} aria-hidden="true" />
               </a>
             </div>
@@ -379,7 +379,7 @@ export default function Home() {
 
       <footer className="border-t border-line bg-white/88 py-8 backdrop-blur">
         <div className="container-shell flex flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>BookEasy הוא MVP דמו חדש, דמיוני ונקי להצגה לבעלי עסקים.</p>
+          <p>BookEasy הוא MVP נקי ומהיר להצגה לבעלי עסקים שרוצים לקבל הזמנות דרך לינק אחד.</p>
           <div className="flex flex-wrap gap-4 font-bold text-foreground">
             <Link href="/terms">תנאי שימוש</Link>
             <Link href="/privacy">פרטיות</Link>
@@ -488,7 +488,7 @@ function DashboardPreview() {
           ["הזמנות היום", "8"],
           ["קרובות", "14"],
           ["פופולרי", "תספורת"],
-          ["בקשות דמו", "3"],
+          ["עמודים חדשים", "3"],
         ].map(([label, value]) => (
           <div key={label} className="rounded-[8px] border border-line bg-[var(--surface-soft)] p-4">
             <p className="text-sm text-muted">{label}</p>

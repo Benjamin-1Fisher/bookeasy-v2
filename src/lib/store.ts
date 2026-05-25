@@ -8,6 +8,7 @@ import type {
   BookeasyStore,
   Business,
   BusinessBundle,
+  BusinessCategory,
   DemoRequest,
   Service,
   Slot,
@@ -270,6 +271,91 @@ export async function createDemoRequest(input: Omit<DemoRequest, "id" | "status"
   });
 }
 
+const categoryDefaults: Record<BusinessCategory, { icon: string; coverTone: Business["coverTone"] }> = {
+  barber: { icon: "scissors", coverTone: "teal" },
+  nails: { icon: "sparkles", coverTone: "rose" },
+  clinic: { icon: "heart-pulse", coverTone: "blue" },
+  fitness: { icon: "dumbbell", coverTone: "teal" },
+  other: { icon: "store", coverTone: "blue" },
+};
+
+export async function createBusinessPage(input: {
+  ownerName: string;
+  businessName: string;
+  category: BusinessCategory;
+  phone: string;
+  whatsapp?: string;
+  address?: string;
+  slug: string;
+  serviceName: string;
+  servicePrice: number;
+  serviceDurationMinutes: number;
+}) {
+  return updateStore((store) => {
+    if (store.businesses.some((business) => business.slug === input.slug)) {
+      throw new Error("הלינק הזה כבר תפוס. כדאי לבחור שם אחר לעמוד העסק");
+    }
+
+    const timestamp = new Date().toISOString();
+    const businessId = makeId("biz");
+    const defaults = categoryDefaults[input.category];
+    const business: Business = {
+      id: businessId,
+      slug: input.slug,
+      name: input.businessName,
+      businessIcon: defaults.icon,
+      category: input.category,
+      description: `עמוד הזמנות של ${input.businessName}. בוחרים שירות, שעה פנויה ופרטים, והבקשה נכנסת בצורה מסודרת.`,
+      shortDescription: "הזמנות אונליין דרך לינק אחד מסודר.",
+      phone: input.phone,
+      whatsapp: input.whatsapp || input.phone,
+      address: input.address || "",
+      timezone: "Asia/Jerusalem",
+      coverTitle: `הזמנת תור ל${input.businessName}`,
+      coverSubtitle: "שירותים, מחירים ושעות פנויות בלינק אחד",
+      coverTone: defaults.coverTone,
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    const service: Service = {
+      id: makeId("srv"),
+      businessId,
+      name: input.serviceName,
+      description: "שירות ראשון שנוצר בזמן פתיחת העמוד. אפשר לערוך אותו מלוח הניהול.",
+      price: input.servicePrice,
+      durationMinutes: input.serviceDurationMinutes,
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    const availabilityRules: AvailabilityRule[] = [0, 1, 2, 3, 4].map((dayOfWeek) => ({
+      id: makeId("av"),
+      businessId,
+      dayOfWeek,
+      startTime: "09:00",
+      endTime: "17:00",
+      isActive: true,
+    }));
+
+    store.businesses.unshift(business);
+    store.services.unshift(service);
+    store.availabilityRules.push(...availabilityRules);
+    store.users.unshift({
+      id: makeId("user"),
+      name: input.ownerName,
+      email: `${input.slug}@bookeasy.local`,
+      role: "business_owner",
+      businessId,
+      isActive: true,
+    });
+
+    return { business, service, availabilityRules };
+  });
+}
+
 export async function updateBookingStatus(id: string, status: BookingStatus) {
   return updateStore((store) => {
     const booking = store.bookings.find((item) => item.id === id);
@@ -391,7 +477,7 @@ export async function getAdminSummary(businessId = "biz_barber") {
       totalBookings: bookings.length,
       upcomingBookings: activeBookings.filter((booking) => booking.date >= today).length,
       popularService: popular,
-      newDemoRequests: store.demoRequests.filter((request) => request.status === "new").length,
+      totalBusinesses: store.businesses.filter((item) => item.isActive).length,
     },
   };
 }

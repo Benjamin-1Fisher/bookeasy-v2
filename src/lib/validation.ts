@@ -25,6 +25,30 @@ export const demoRequestSchema = z.object({
   message: z.string().trim().max(400, "ההודעה ארוכה מדי").optional().or(z.literal("")),
 });
 
+export const businessCreateSchema = z.object({
+  ownerName: z.string().trim().min(2, "יש להזין שם בעל העסק").max(80, "השם ארוך מדי"),
+  businessName: z.string().trim().min(2, "יש להזין שם עסק").max(90, "שם העסק ארוך מדי"),
+  category: z.enum(["barber", "nails", "clinic", "fitness", "other"]),
+  phone: z.string().trim().regex(phoneRegex, "מספר הטלפון נראה לא תקין"),
+  whatsapp: z.string().trim().regex(phoneRegex, "מספר הוואטסאפ נראה לא תקין").optional().or(z.literal("")),
+  address: z.string().trim().max(140, "הכתובת ארוכה מדי").optional().or(z.literal("")),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, "הלינק קצר מדי")
+    .max(60, "הלינק ארוך מדי")
+    .regex(/^[a-z0-9-]+$/, "אפשר להשתמש רק באותיות באנגלית, מספרים ומקפים"),
+  serviceName: z.string().trim().min(2, "צריך לתת שם לשירות הראשון").max(80, "שם השירות ארוך מדי"),
+  servicePrice: z.coerce.number().min(0, "יש להזין מחיר במספרים בלבד").max(10000, "המחיר גבוה מדי"),
+  serviceDurationMinutes: z.coerce
+    .number()
+    .int("משך השירות חייב להיות מספר שלם")
+    .min(15, "משך השירות חייב להיות לפחות 15 דקות")
+    .max(360, "משך השירות ארוך מדי"),
+  paymentConfirmed: z.boolean().refine(Boolean, "אפשר ליצור עמוד רק אחרי רכישת השירות"),
+});
+
 export const serviceSchema = z.object({
   businessId: z.string().min(1, "חסר מזהה עסק"),
   name: z.string().trim().min(2, "צריך לתת שם לשירות").max(80, "שם השירות ארוך מדי"),

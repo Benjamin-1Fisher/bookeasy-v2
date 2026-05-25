@@ -50,6 +50,58 @@ const steps = [
   { title: "הכול נכנס מסודר", text: "ההזמנה מופיעה בלוח הניהול עם סטטוס ברור.", Icon: LayoutDashboard },
 ];
 
+const quickActions = [
+  {
+    title: "דף הזמנה",
+    text: "פתיחה מיידית לדמו",
+    href: "/b/nails-demo",
+    Icon: MousePointerClick,
+    tone: "from-[#12272a] via-[#123b38] to-[#0f8f7f]",
+  },
+  {
+    title: "לוח ניהול",
+    text: "כניסה לדשבורד",
+    href: "/dashboard",
+    Icon: LayoutDashboard,
+    tone: "from-[#111f27] via-[#17324a] to-[#4b789b]",
+  },
+  {
+    title: "קבל דמו",
+    text: "השאירו פרטים",
+    href: "#demo-form",
+    Icon: CalendarCheck,
+    tone: "from-[#1b211f] via-[#2f2b1d] to-[#c8964b]",
+  },
+  {
+    title: "מחיר",
+    text: `${launchPlan.priceLabel} ${launchPlan.periodLabel}`,
+    href: "#pricing",
+    Icon: BadgeDollarSign,
+    tone: "from-[#171f20] via-[#24322f] to-[#7f8d66]",
+  },
+  {
+    title: "איך זה עובד",
+    text: "4 צעדים קצרים",
+    href: "#how",
+    Icon: WandSparkles,
+    tone: "from-[#151c22] via-[#232a35] to-[#5f6f83]",
+  },
+  {
+    title: "שאלות",
+    text: "תשובות מהירות",
+    href: "#faq",
+    Icon: MessageCircle,
+    tone: "from-[#17191d] via-[#2a2429] to-[#8b5a63]",
+  },
+];
+
+const navItems = [
+  { label: "דף הזמנה", href: "/b/nails-demo", Icon: MousePointerClick },
+  { label: "דשבורד", href: "/dashboard", Icon: LayoutDashboard },
+  { label: "מחיר", href: "#pricing", Icon: BadgeDollarSign },
+  { label: "שאלות", href: "#faq", Icon: MessageCircle },
+];
+
 const businessExamples = [
   ["מספרות וברברים", "scissors"],
   ["קוסמטיקה וציפורניים", "sparkles"],
@@ -86,43 +138,41 @@ export default function Home() {
   return (
     <main>
       <section className="elegant-gradient relative overflow-hidden">
-        <nav className="container-shell flex items-center justify-between py-5">
-          <Link href="/" className="focus-ring flex items-center gap-2 rounded-[8px] font-extrabold text-foreground">
-            <span className="grid size-9 place-items-center rounded-[8px] bg-primary text-white">
+        <nav className="container-shell sticky top-3 z-30 flex items-center justify-between gap-3 rounded-[8px] border border-white/10 bg-[#0d171a]/88 px-3 py-3 shadow-[0_24px_70px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:px-4">
+          <Link href="/" className="focus-ring flex min-h-11 items-center gap-2 rounded-[8px] font-extrabold text-foreground">
+            <span className="grid size-10 place-items-center rounded-[8px] bg-primary text-white shadow-sm">
               <Sparkles size={18} aria-hidden="true" />
             </span>
-            BookEasy
+            <span className="text-lg leading-none">BookEasy</span>
           </Link>
-          <div className="hidden items-center gap-6 text-sm font-bold text-muted md:flex">
-            <a href="#how" className="focus-ring rounded-[8px] hover:text-foreground">
-              איך זה עובד
-            </a>
-            <a href="#demo" className="focus-ring rounded-[8px] hover:text-foreground">
-              דמו
-            </a>
-            <a href="#pricing" className="focus-ring rounded-[8px] hover:text-foreground">
-              מחיר
-            </a>
-            <a href="#faq" className="focus-ring rounded-[8px] hover:text-foreground">
-              שאלות
-            </a>
+          <div className="hidden items-center rounded-[8px] border border-white/10 bg-white/5 p-1 text-sm font-bold text-muted shadow-inner md:flex">
+            {navItems.map(({ label, href, Icon }) => (
+              <Link
+                key={label}
+                href={href}
+                className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-[8px] px-3 py-2 transition hover:bg-white/8 hover:text-white"
+              >
+                <Icon size={16} aria-hidden="true" />
+                {label}
+              </Link>
+            ))}
           </div>
           <a
             href="#demo-form"
-            className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm"
+            className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-bold text-white"
           >
             קבל דמו
             <ArrowLeft size={16} aria-hidden="true" />
           </a>
         </nav>
 
-        <div className="container-shell grid min-h-[calc(100vh-80px)] items-center gap-10 py-10 lg:grid-cols-[1fr_0.92fr] lg:py-14">
+        <div className="container-shell grid min-h-[calc(100svh-92px)] items-center gap-8 py-7 lg:grid-cols-[1fr_0.92fr] lg:py-10">
           <div>
-            <div className="gold-chip mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold">
-              <BadgeDollarSign size={16} aria-hidden="true" />
-              מחיר השקה: {launchPlan.priceLabel} {launchPlan.periodLabel}, נשמר ל-5 שנים
+            <div className="gold-chip mb-5 inline-grid max-w-full grid-cols-[auto_1fr] items-center gap-2 rounded-[8px] px-4 py-2 text-sm font-extrabold leading-6 sm:rounded-full">
+              <BadgeDollarSign size={16} className="shrink-0" aria-hidden="true" />
+              <span className="min-w-0">מחיר השקה: {launchPlan.priceLabel} {launchPlan.periodLabel}, נשמר ל-5 שנים</span>
             </div>
-            <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-normal text-foreground sm:text-5xl">
+            <h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-normal text-foreground sm:text-5xl">
               תן ללקוחות להזמין לבד
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-muted sm:text-xl">
@@ -144,7 +194,24 @@ export default function Home() {
                 <MousePointerClick size={18} aria-hidden="true" />
               </Link>
             </div>
-            <div className="mt-8 grid gap-3 text-sm font-bold text-foreground sm:grid-cols-3">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {quickActions.map(({ title, text, href, Icon, tone }) => (
+                <Link
+                  key={title}
+                  href={href}
+                  className={`focus-ring group flex min-h-20 items-center justify-between gap-3 rounded-[8px] border border-white/10 bg-gradient-to-br ${tone} p-3 text-right text-white shadow-[0_18px_45px_rgba(0,0,0,0.24)] ring-1 ring-white/5 transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_24px_55px_rgba(0,0,0,0.32)]`}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-extrabold">{title}</span>
+                    <span className="mt-0.5 block text-sm font-semibold text-white/82">{text}</span>
+                  </span>
+                  <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-white/20 text-white ring-1 ring-white/20 transition group-hover:bg-white/28">
+                    <Icon size={19} aria-hidden="true" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6 hidden gap-3 text-sm font-bold text-foreground sm:grid sm:grid-cols-3">
               {["RTL מלא", "מותאם למובייל", "עריכת עמוד עסק"].map((item) => (
                 <span key={item} className="flex items-center gap-2">
                   <CheckCircle2 size={18} className="text-primary" aria-hidden="true" />
@@ -154,11 +221,13 @@ export default function Home() {
             </div>
           </div>
 
-          <HeroProductPreview />
+          <div className="hidden lg:block">
+            <HeroProductPreview />
+          </div>
         </div>
       </section>
 
-      <section className="border-y border-line bg-white py-12">
+      <section className="border-y border-line bg-white/85 py-12 backdrop-blur">
         <div className="container-shell grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {benefits.map(({ title, text, Icon }) => (
             <article key={title} className="quiet-card rounded-[8px] p-5">
@@ -193,10 +262,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#0e2b30] py-16 text-white" id="demo">
+      <section className="bg-[linear-gradient(135deg,#071114_0%,#102328_58%,#2b3126_140%)] py-16 text-white" id="demo">
         <div className="container-shell grid gap-8 lg:grid-cols-2">
           <div>
-            <p className="text-sm font-extrabold text-[#d7a44a]">דמו של דף הזמנות</p>
+            <p className="text-sm font-extrabold text-[#e2b467]">דמו של דף הזמנות</p>
             <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">ככה הלקוח רואה את העסק שלך</h2>
             <p className="mt-4 max-w-xl leading-8 text-white/75">
               בלי להסביר כל פעם מה פנוי. הלקוח רואה שירותים, מחירים ושעות, ומשאיר פרטים בצורה נקייה.
@@ -235,7 +304,7 @@ export default function Home() {
         <DashboardPreview />
       </section>
 
-      <section className="border-y border-line bg-white py-16" id="pricing">
+      <section className="border-y border-line bg-white/85 py-16 backdrop-blur" id="pricing">
         <div className="container-shell grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p className="text-sm font-extrabold text-primary">{launchPlan.badge}</p>
@@ -279,7 +348,7 @@ export default function Home() {
         </div>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {businessExamples.map(([item, icon]) => (
-            <div key={item} className="flex items-center gap-3 rounded-[8px] border border-line bg-white p-4 font-bold shadow-sm">
+            <div key={item} className="flex items-center gap-3 rounded-[8px] border border-line bg-white/85 p-4 font-bold shadow-sm transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-md">
               <span className="icon-tile size-10">
                 <BusinessIcon value={icon} className="size-5" />
               </span>
@@ -308,7 +377,7 @@ export default function Home() {
         <DemoRequestForm />
       </section>
 
-      <footer className="border-t border-line bg-white py-8">
+      <footer className="border-t border-line bg-white/88 py-8 backdrop-blur">
         <div className="container-shell flex flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>BookEasy הוא MVP דמו חדש, דמיוני ונקי להצגה לבעלי עסקים.</p>
           <div className="flex flex-wrap gap-4 font-bold text-foreground">
@@ -324,8 +393,8 @@ export default function Home() {
 
 function HeroProductPreview() {
   return (
-    <div className="soft-card rounded-[8px] bg-white p-4">
-      <div className="rounded-[8px] bg-[#0e2b30] p-4 text-white">
+    <div className="soft-card rounded-[8px] bg-white/90 p-3">
+      <div className="rounded-[8px] bg-[linear-gradient(135deg,#071114_0%,#123331_65%,#4b3b23_150%)] p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center rounded-[8px] bg-white text-primary">
@@ -391,7 +460,7 @@ function BookingPreview() {
             <span
               key={time}
               className={`ltr rounded-[8px] px-3 py-2 text-center font-extrabold ${
-                index === 1 ? "bg-primary text-white" : "bg-[#f1f5f3] text-foreground"
+                index === 1 ? "bg-primary text-white" : "bg-[var(--surface-soft)] text-foreground"
               }`}
             >
               {time}
@@ -399,7 +468,7 @@ function BookingPreview() {
           ))}
         </div>
       </div>
-      <div className="mt-3 rounded-[8px] bg-[#f4f7f5] p-4">
+      <div className="mt-3 rounded-[8px] bg-[var(--surface-soft)] p-4">
         <p className="font-extrabold">סיכום הזמנה</p>
         <div className="mt-3 grid gap-2 text-sm text-muted">
           <span>שירות: תספורת גבר</span>
@@ -413,7 +482,7 @@ function BookingPreview() {
 
 function DashboardPreview() {
   return (
-    <div className="soft-card rounded-[8px] bg-white p-4">
+    <div className="soft-card rounded-[8px] bg-white/90 p-4">
       <div className="grid gap-3 sm:grid-cols-4">
         {[
           ["הזמנות היום", "8"],
@@ -421,7 +490,7 @@ function DashboardPreview() {
           ["פופולרי", "תספורת"],
           ["בקשות דמו", "3"],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+          <div key={label} className="rounded-[8px] border border-line bg-[var(--surface-soft)] p-4">
             <p className="text-sm text-muted">{label}</p>
             <p className="mt-2 text-2xl font-extrabold">{value}</p>
           </div>
@@ -431,7 +500,7 @@ function DashboardPreview() {
         {["10:00 אורי לוי - תספורת", "12:00 דניאל כהן - תספורת + זקן", "16:00 יובל ישראלי - עיצוב זקן"].map((row) => (
           <div key={row} className="flex items-center justify-between border-b border-line px-4 py-3 last:border-b-0">
             <span className="font-bold">{row}</span>
-            <span className="rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-extrabold text-primary">מסודר</span>
+            <span className="rounded-full bg-[var(--primary-soft)] px-3 py-1 text-xs font-extrabold text-primary">מסודר</span>
           </div>
         ))}
       </div>

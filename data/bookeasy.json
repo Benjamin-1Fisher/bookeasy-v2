@@ -1,0 +1,388 @@
+{
+  "businesses": [
+    {
+      "id": "biz_barber",
+      "slug": "barber-demo",
+      "name": "ברבר סטודיו",
+      "category": "barber",
+      "description": "סטודיו דמיוני לתספורות, זקן וטיפוח לגברים. בוחרים שירות, שעה פנויה ופרטים, וההזמנה נכנסת בצורה מסודרת.",
+      "shortDescription": "תספורות וזקן בלי הודעות הלוך-חזור.",
+      "phone": "03-555-0101",
+      "whatsapp": "972501111111",
+      "address": "רחוב הדוגמה 12, תל אביב",
+      "timezone": "Asia/Jerusalem",
+      "coverTitle": "תורים לתספורת ולזקן",
+      "coverSubtitle": "שעות פנויות, מחירים ושירותים בלינק אחד",
+      "coverTone": "teal",
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "biz_nails",
+      "slug": "nails-demo",
+      "name": "נייל סטודיו",
+      "category": "nails",
+      "description": "סטודיו דמיוני לטיפוח ציפורניים. לקוחות בוחרות טיפול ושעה בלי לשאול שוב ושוב מה פנוי.",
+      "shortDescription": "לק ג׳ל, בנייה ומניקור עם זמינות ברורה.",
+      "phone": "03-555-0102",
+      "whatsapp": "972502222222",
+      "address": "רחוב הפרחים 8, רמת גן",
+      "timezone": "Asia/Jerusalem",
+      "coverTitle": "טיפולי ציפורניים בזמן שנוח לך",
+      "coverSubtitle": "בחירת שירות, מחיר ושעה פנויה בכמה לחיצות",
+      "coverTone": "rose",
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "biz_clinic",
+      "slug": "clinic-demo",
+      "name": "קליניקת איזון",
+      "category": "clinic",
+      "description": "קליניקה דמיונית לפגישות ייעוץ וטיפול אישי. דף הזמנות רגוע וברור שמצמצם תיאומים ידניים.",
+      "shortDescription": "פגישות ייעוץ וטיפול אישי בלינק אחד.",
+      "phone": "03-555-0103",
+      "whatsapp": "972503333333",
+      "address": "שדרות הבריאות 4, גבעתיים",
+      "timezone": "Asia/Jerusalem",
+      "coverTitle": "זמני טיפול ופגישות ייעוץ",
+      "coverSubtitle": "הלקוח בוחר שעה, ואת מקבלת בקשה מסודרת",
+      "coverTone": "blue",
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    }
+  ],
+  "services": [
+    {
+      "id": "srv_barber_cut",
+      "businessId": "biz_barber",
+      "name": "תספורת גבר",
+      "description": "תספורת מלאה כולל סידור קו וסיום נקי.",
+      "price": 90,
+      "durationMinutes": 45,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_barber_beard",
+      "businessId": "biz_barber",
+      "name": "עיצוב זקן",
+      "description": "סידור זקן, קווים וגימור.",
+      "price": 55,
+      "durationMinutes": 30,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_barber_combo",
+      "businessId": "biz_barber",
+      "name": "תספורת + זקן",
+      "description": "חבילה מלאה לתספורת ועיצוב זקן.",
+      "price": 135,
+      "durationMinutes": 75,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_barber_child",
+      "businessId": "biz_barber",
+      "name": "תספורת ילד",
+      "description": "תספורת קצרה ונוחה לילדים.",
+      "price": 70,
+      "durationMinutes": 35,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_nails_gel",
+      "businessId": "biz_nails",
+      "name": "לק ג׳ל",
+      "description": "לק ג׳ל עם הכנה מלאה וסיום מבריק.",
+      "price": 130,
+      "durationMinutes": 75,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_nails_build",
+      "businessId": "biz_nails",
+      "name": "בניית ציפורניים",
+      "description": "בניית ציפורניים מלאה בהתאמה אישית.",
+      "price": 240,
+      "durationMinutes": 120,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_nails_fill",
+      "businessId": "biz_nails",
+      "name": "מילוי",
+      "description": "מילוי ותחזוקה למראה מסודר.",
+      "price": 170,
+      "durationMinutes": 90,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_nails_manicure",
+      "businessId": "biz_nails",
+      "name": "מניקור",
+      "description": "טיפול בסיסי, סידור וניקוי.",
+      "price": 85,
+      "durationMinutes": 45,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_clinic_intro",
+      "businessId": "biz_clinic",
+      "name": "פגישת ייעוץ",
+      "description": "פגישה ראשונית להיכרות, שאלות ובניית כיוון.",
+      "price": 180,
+      "durationMinutes": 45,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_clinic_personal",
+      "businessId": "biz_clinic",
+      "name": "טיפול אישי",
+      "description": "מפגש אישי ממוקד לפי הצורך.",
+      "price": 260,
+      "durationMinutes": 60,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_clinic_training",
+      "businessId": "biz_clinic",
+      "name": "אימון אישי",
+      "description": "מפגש אישי לשגרה, מיקוד והרגלים.",
+      "price": 220,
+      "durationMinutes": 60,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "srv_clinic_package",
+      "businessId": "biz_clinic",
+      "name": "חבילת היכרות",
+      "description": "שתי פגישות היכרות במחיר מיוחד.",
+      "price": 390,
+      "durationMinutes": 90,
+      "isActive": true,
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    }
+  ],
+  "availabilityRules": [
+    {
+      "id": "av_barber_0",
+      "businessId": "biz_barber",
+      "dayOfWeek": 0,
+      "startTime": "10:00",
+      "endTime": "18:00",
+      "isActive": true
+    },
+    {
+      "id": "av_barber_1",
+      "businessId": "biz_barber",
+      "dayOfWeek": 1,
+      "startTime": "10:00",
+      "endTime": "19:00",
+      "isActive": true
+    },
+    {
+      "id": "av_barber_2",
+      "businessId": "biz_barber",
+      "dayOfWeek": 2,
+      "startTime": "10:00",
+      "endTime": "19:00",
+      "isActive": true
+    },
+    {
+      "id": "av_barber_3",
+      "businessId": "biz_barber",
+      "dayOfWeek": 3,
+      "startTime": "10:00",
+      "endTime": "19:00",
+      "isActive": true
+    },
+    {
+      "id": "av_barber_4",
+      "businessId": "biz_barber",
+      "dayOfWeek": 4,
+      "startTime": "10:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_nails_0",
+      "businessId": "biz_nails",
+      "dayOfWeek": 0,
+      "startTime": "09:00",
+      "endTime": "15:00",
+      "isActive": true
+    },
+    {
+      "id": "av_nails_1",
+      "businessId": "biz_nails",
+      "dayOfWeek": 1,
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_nails_2",
+      "businessId": "biz_nails",
+      "dayOfWeek": 2,
+      "startTime": "11:00",
+      "endTime": "19:00",
+      "isActive": true
+    },
+    {
+      "id": "av_nails_3",
+      "businessId": "biz_nails",
+      "dayOfWeek": 3,
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_nails_4",
+      "businessId": "biz_nails",
+      "dayOfWeek": 4,
+      "startTime": "09:00",
+      "endTime": "14:00",
+      "isActive": true
+    },
+    {
+      "id": "av_clinic_0",
+      "businessId": "biz_clinic",
+      "dayOfWeek": 0,
+      "startTime": "08:30",
+      "endTime": "14:30",
+      "isActive": true
+    },
+    {
+      "id": "av_clinic_1",
+      "businessId": "biz_clinic",
+      "dayOfWeek": 1,
+      "startTime": "12:00",
+      "endTime": "20:00",
+      "isActive": true
+    },
+    {
+      "id": "av_clinic_2",
+      "businessId": "biz_clinic",
+      "dayOfWeek": 2,
+      "startTime": "08:30",
+      "endTime": "14:30",
+      "isActive": true
+    },
+    {
+      "id": "av_clinic_3",
+      "businessId": "biz_clinic",
+      "dayOfWeek": 3,
+      "startTime": "12:00",
+      "endTime": "20:00",
+      "isActive": true
+    },
+    {
+      "id": "av_clinic_4",
+      "businessId": "biz_clinic",
+      "dayOfWeek": 4,
+      "startTime": "08:30",
+      "endTime": "13:00",
+      "isActive": true
+    }
+  ],
+  "availabilityExceptions": [
+    {
+      "id": "ex_barber_demo_closed",
+      "businessId": "biz_barber",
+      "date": "2026-05-27",
+      "type": "closed"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "book_demo_1",
+      "businessId": "biz_barber",
+      "serviceId": "srv_barber_cut",
+      "customerName": "אורי לוי",
+      "customerPhone": "050-1111111",
+      "notes": "מעדיף תספורת קצרה.",
+      "date": "2026-05-25",
+      "startTime": "10:00",
+      "endTime": "10:45",
+      "status": "confirmed",
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "book_demo_2",
+      "businessId": "biz_barber",
+      "serviceId": "srv_barber_combo",
+      "customerName": "דניאל כהן",
+      "customerPhone": "052-2222222",
+      "notes": "",
+      "date": "2026-05-25",
+      "startTime": "12:00",
+      "endTime": "13:15",
+      "status": "pending",
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    },
+    {
+      "id": "book_demo_3",
+      "businessId": "biz_barber",
+      "serviceId": "srv_barber_beard",
+      "customerName": "יובל ישראלי",
+      "customerPhone": "054-3333333",
+      "notes": "זקן קצר.",
+      "date": "2026-05-26",
+      "startTime": "16:00",
+      "endTime": "16:30",
+      "status": "confirmed",
+      "createdAt": "2026-05-25T07:00:00.000Z",
+      "updatedAt": "2026-05-25T07:00:00.000Z"
+    }
+  ],
+  "demoRequests": [
+    {
+      "id": "demo_req_1",
+      "ownerName": "נועה מדמון",
+      "businessType": "קוסמטיקה",
+      "phone": "050-4444444",
+      "businessLink": "instagram.com/demo-nails",
+      "message": "רוצה לבדוק איך זה עובד ללקוחות מהאינסטגרם.",
+      "status": "new",
+      "createdAt": "2026-05-25T07:00:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "user_admin_demo",
+      "name": "מנהל דמו",
+      "email": "demo@bookeasy.local",
+      "role": "business_owner",
+      "businessId": "biz_barber",
+      "isActive": true
+    }
+  ]
+}

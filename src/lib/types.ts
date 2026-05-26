@@ -6,11 +6,20 @@ export type AvailabilityExceptionType = "closed" | "extra_open";
 
 export type BusinessCategory = "barber" | "nails" | "clinic" | "fitness" | "other";
 
+export type Language = "he" | "en";
+
+export type AnalyticsEventName =
+  | "setup_started"
+  | "setup_preview_generated"
+  | "setup_saved"
+  | "booking_page_shared";
+
 export type Business = {
   id: string;
   slug: string;
   name: string;
   businessIcon: string;
+  profileImage?: string;
   category: BusinessCategory;
   description: string;
   shortDescription: string;
@@ -21,6 +30,9 @@ export type Business = {
   coverTitle: string;
   coverSubtitle: string;
   coverTone: "teal" | "rose" | "blue";
+  defaultLanguage: Language;
+  supportedLanguages: Language[];
+  showLanguageSwitcher: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -91,6 +103,14 @@ export type User = {
   isActive: boolean;
 };
 
+export type AnalyticsEvent = {
+  id: string;
+  name: AnalyticsEventName;
+  businessId?: string;
+  metadata?: Record<string, string | number | boolean>;
+  createdAt: string;
+};
+
 export type BookeasyStore = {
   businesses: Business[];
   services: Service[];
@@ -99,6 +119,7 @@ export type BookeasyStore = {
   bookings: Booking[];
   demoRequests: DemoRequest[];
   users: User[];
+  analyticsEvents: AnalyticsEvent[];
 };
 
 export type BusinessBundle = {

@@ -17,6 +17,9 @@ export async function POST(request: Request) {
       serviceName: payload.serviceName,
       servicePrice: payload.servicePrice,
       serviceDurationMinutes: payload.serviceDurationMinutes,
+      defaultLanguage: payload.defaultLanguage,
+      supportedLanguages: payload.supportedLanguages,
+      showLanguageSwitcher: payload.showLanguageSwitcher,
     });
 
     return NextResponse.json(

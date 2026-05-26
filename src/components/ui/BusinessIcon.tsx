@@ -1,12 +1,12 @@
 import { Dumbbell, HeartPulse, Scissors, Sparkles, Store, WandSparkles } from "lucide-react";
 
 export const businessIconOptions = [
-  { value: "scissors", label: "מספרה", Icon: Scissors },
-  { value: "sparkles", label: "יופי וטיפוח", Icon: Sparkles },
-  { value: "heart-pulse", label: "קליניקה", Icon: HeartPulse },
-  { value: "dumbbell", label: "אימון", Icon: Dumbbell },
-  { value: "wand", label: "סטודיו", Icon: WandSparkles },
-  { value: "store", label: "עסק כללי", Icon: Store },
+  { value: "scissors", label: "Barber", Icon: Scissors },
+  { value: "sparkles", label: "Beauty", Icon: Sparkles },
+  { value: "heart-pulse", label: "Clinic", Icon: HeartPulse },
+  { value: "dumbbell", label: "Fitness", Icon: Dumbbell },
+  { value: "wand", label: "Studio", Icon: WandSparkles },
+  { value: "store", label: "Store", Icon: Store },
 ] as const;
 
 export function BusinessIcon({ value, className = "size-6" }: { value?: string; className?: string }) {

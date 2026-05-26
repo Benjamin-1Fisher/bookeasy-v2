@@ -1,6 +1,58 @@
 {
   "businesses": [
     {
+      "id": "biz_mpljgn3v_3797818f",
+      "slug": "nails-jg7pe",
+      "name": "סטודיו נועה לציפורניים ברמת גן",
+      "businessIcon": "sparkles",
+      "profileImage": "data:image/svg+xml;charset=UTF-8,%0A%20%20%20%20%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20720%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23321d28%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%238f4e66%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23d2a37f%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%20%20%3Cfilter%20id%3D%22soft%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2214%22%20%2F%3E%3C%2Ffilter%3E%0A%20%20%20%20%20%20%3C%2Fdefs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%22720%22%20height%3D%22720%22%20rx%3D%2268%22%20fill%3D%22url(%23bg)%22%20%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%22138%22%20cy%3D%22148%22%20r%3D%22138%22%20fill%3D%22%23fff8f5%22%20opacity%3D%220.12%22%20filter%3D%22url(%23soft)%22%20%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%22551%22%20cy%3D%22570%22%20r%3D%22182%22%20fill%3D%22%23fff8f5%22%20opacity%3D%220.16%22%20filter%3D%22url(%23soft)%22%20%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2292%22%20y%3D%2292%22%20width%3D%22536%22%20height%3D%22536%22%20rx%3D%2254%22%20fill%3D%22%23fff8f5%22%20opacity%3D%220.10%22%20%2F%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22360%22%20y%3D%22355%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%20font-family%3D%22Heebo%2C%20Arial%2C%20sans-serif%22%20font-size%3D%22184%22%20font-weight%3D%22900%22%20fill%3D%22%23fff8f5%22%20opacity%3D%220.92%22%3E%D7%A1%3C%2Ftext%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22360%22%20y%3D%22512%22%20text-anchor%3D%22middle%22%20font-family%3D%22Heebo%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2234%22%20font-weight%3D%22800%22%20fill%3D%22%23fff8f5%22%20opacity%3D%220.90%22%3E%D7%A1%D7%98%D7%95%D7%93%D7%99%D7%95%20%D7%A6%D7%99%D7%A4%D7%95%D7%A8%D7%A0%D7%99%D7%99%D7%9D%20%D7%95%D7%A8%D7%95%D7%93%20%D7%A0%D7%A7%D7%99%20%D7%A2%D7%9D%20%D7%AA%D7%97%D7%95%D7%A9%D7%94%20%D7%99%D7%95%D7%A7%D7%A8%D7%AA%D7%99%D7%AA%3C%2Ftext%3E%0A%20%20%20%20%3C%2Fsvg%3E%0A%20%20",
+      "category": "nails",
+      "description": "סטודיו נועה לציפורניים ברמת גן מאפשר ללקוחות לבחור שירות, לראות זמינות ולקבוע תור בלינק אחד.",
+      "shortDescription": "עמוד הזמנות חכם לשירותים, מחירים ושעות פנויות.",
+      "phone": "050-7654321",
+      "whatsapp": "050-7654321",
+      "address": "ברמת גן",
+      "timezone": "Asia/Jerusalem",
+      "coverTitle": "הזמנת תור לסטודיו נועה לציפורניים ברמת גן",
+      "coverSubtitle": "בחרו שירות, שעה ופרטים בכמה צעדים קצרים",
+      "coverTone": "rose",
+      "defaultLanguage": "he",
+      "supportedLanguages": [
+        "he",
+        "en"
+      ],
+      "showLanguageSwitcher": true,
+      "isActive": true,
+      "createdAt": "2026-05-25T18:27:27.355Z",
+      "updatedAt": "2026-05-25T18:27:27.355Z"
+    },
+    {
+      "id": "biz_mpldxem1_bda87cd5",
+      "slug": "http-localhost-3000-create-page",
+      "name": "ספר",
+      "businessIcon": "scissors",
+      "category": "barber",
+      "description": "עמוד הזמנות של ספר. בוחרים שירות, שעה פנויה ופרטים, והבקשה נכנסת בצורה מסודרת.",
+      "shortDescription": "הזמנות אונליין דרך לינק אחד מסודר.",
+      "phone": "0500000000",
+      "whatsapp": "0500000000",
+      "address": "הרצל 26 תל אביב",
+      "timezone": "Asia/Jerusalem",
+      "coverTitle": "הזמנת תור לספר",
+      "coverSubtitle": "שירותים, מחירים ושעות פנויות בלינק אחד",
+      "coverTone": "teal",
+      "isActive": true,
+      "createdAt": "2026-05-25T15:52:31.795Z",
+      "updatedAt": "2026-05-25T15:52:31.795Z",
+      "defaultLanguage": "he",
+      "supportedLanguages": [
+        "he",
+        "en"
+      ],
+      "showLanguageSwitcher": true,
+      "profileImage": ""
+    },
+    {
       "id": "biz_barber",
       "slug": "barber-demo",
       "businessIcon": "scissors",
@@ -17,7 +69,14 @@
       "coverTone": "teal",
       "isActive": true,
       "createdAt": "2026-05-25T07:00:00.000Z",
-      "updatedAt": "2026-05-25T07:00:00.000Z"
+      "updatedAt": "2026-05-25T07:00:00.000Z",
+      "defaultLanguage": "he",
+      "supportedLanguages": [
+        "he",
+        "en"
+      ],
+      "showLanguageSwitcher": true,
+      "profileImage": ""
     },
     {
       "id": "biz_nails",
@@ -36,29 +95,98 @@
       "coverTone": "rose",
       "isActive": true,
       "createdAt": "2026-05-25T07:00:00.000Z",
-      "updatedAt": "2026-05-25T07:00:00.000Z"
+      "updatedAt": "2026-05-25T07:00:00.000Z",
+      "defaultLanguage": "he",
+      "supportedLanguages": [
+        "he",
+        "en"
+      ],
+      "showLanguageSwitcher": true,
+      "profileImage": ""
     },
     {
       "id": "biz_clinic",
       "slug": "clinic-demo",
       "businessIcon": "heart-pulse",
-      "name": "קליניקת איזון",
+      "name": "Balance Clinic",
       "category": "clinic",
-      "description": "קליניקה דמיונית לפגישות ייעוץ וטיפול אישי. דף הזמנות רגוע וברור שמצמצם תיאומים ידניים.",
-      "shortDescription": "פגישות ייעוץ וטיפול אישי בלינק אחד.",
+      "description": "A small demo clinic for consultation and personal care appointments. Customers choose a service, available time, and contact details in one guided flow.",
+      "shortDescription": "Consultation and personal care appointments through one booking link.",
       "phone": "03-555-0103",
       "whatsapp": "972503333333",
-      "address": "שדרות הבריאות 4, גבעתיים",
+      "address": "4 Health Avenue, Givatayim",
       "timezone": "Asia/Jerusalem",
-      "coverTitle": "זמני טיפול ופגישות ייעוץ",
-      "coverSubtitle": "הלקוח בוחר שעה, ואת מקבלת בקשה מסודרת",
+      "coverTitle": "Book a consultation or personal session",
+      "coverSubtitle": "Clear services, prices, and available times in one smart link",
       "coverTone": "blue",
       "isActive": true,
       "createdAt": "2026-05-25T07:00:00.000Z",
-      "updatedAt": "2026-05-25T07:00:00.000Z"
+      "updatedAt": "2026-05-25T07:00:00.000Z",
+      "defaultLanguage": "en",
+      "supportedLanguages": [
+        "he",
+        "en"
+      ],
+      "showLanguageSwitcher": true,
+      "profileImage": ""
     }
   ],
   "services": [
+    {
+      "id": "srv_mpljgn3v_2922ca94",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "name": "לק ג'ל",
+      "description": "שירות שנוצר מטקסט ההיכרות שלך. אפשר לערוך את התיאור לפני פרסום.",
+      "price": 140,
+      "durationMinutes": 75,
+      "isActive": true,
+      "createdAt": "2026-05-25T18:27:27.355Z",
+      "updatedAt": "2026-05-25T18:27:27.355Z"
+    },
+    {
+      "id": "srv_mpljgn3v_62b947df",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "name": "מילוי",
+      "description": "שירות שנוצר מטקסט ההיכרות שלך. אפשר לערוך את התיאור לפני פרסום.",
+      "price": 180,
+      "durationMinutes": 90,
+      "isActive": true,
+      "createdAt": "2026-05-25T18:27:27.355Z",
+      "updatedAt": "2026-05-25T18:27:27.355Z"
+    },
+    {
+      "id": "srv_mpljgn3v_eee97196",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "name": "בנייה",
+      "description": "שירות שנוצר מטקסט ההיכרות שלך. אפשר לערוך את התיאור לפני פרסום.",
+      "price": 260,
+      "durationMinutes": 120,
+      "isActive": true,
+      "createdAt": "2026-05-25T18:27:27.355Z",
+      "updatedAt": "2026-05-25T18:27:27.355Z"
+    },
+    {
+      "id": "srv_mpljgn3v_85d3df8f",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "name": "שישי 9",
+      "description": "שירות שנוצר מטקסט ההיכרות שלך. אפשר לערוך את התיאור לפני פרסום.",
+      "price": 0,
+      "durationMinutes": 75,
+      "isActive": true,
+      "createdAt": "2026-05-25T18:27:27.355Z",
+      "updatedAt": "2026-05-25T18:27:27.355Z"
+    },
+    {
+      "id": "srv_mpldxem1_7f70c2c6",
+      "businessId": "biz_mpldxem1_bda87cd5",
+      "name": "תספורת גבר",
+      "description": "שירות ראשון שנוצר בזמן פתיחת העמוד. אפשר לערוך אותו מלוח הניהול.",
+      "price": 110,
+      "durationMinutes": 45,
+      "isActive": true,
+      "createdAt": "2026-05-25T15:52:31.795Z",
+      "updatedAt": "2026-05-25T15:52:31.795Z"
+    },
     {
       "id": "srv_barber_cut",
       "businessId": "biz_barber",
@@ -104,17 +232,6 @@
       "updatedAt": "2026-05-25T07:00:00.000Z"
     },
     {
-      "id": "srv_nails_gel",
-      "businessId": "biz_nails",
-      "name": "לק ג׳ל",
-      "description": "לק ג׳ל עם הכנה מלאה וסיום מבריק.",
-      "price": 130,
-      "durationMinutes": 75,
-      "isActive": true,
-      "createdAt": "2026-05-25T07:00:00.000Z",
-      "updatedAt": "2026-05-25T07:00:00.000Z"
-    },
-    {
       "id": "srv_nails_build",
       "businessId": "biz_nails",
       "name": "בניית ציפורניים",
@@ -134,7 +251,7 @@
       "durationMinutes": 90,
       "isActive": true,
       "createdAt": "2026-05-25T07:00:00.000Z",
-      "updatedAt": "2026-05-25T07:00:00.000Z"
+      "updatedAt": "2026-05-25T10:32:16.124Z"
     },
     {
       "id": "srv_nails_manicure",
@@ -150,8 +267,8 @@
     {
       "id": "srv_clinic_intro",
       "businessId": "biz_clinic",
-      "name": "פגישת ייעוץ",
-      "description": "פגישה ראשונית להיכרות, שאלות ובניית כיוון.",
+      "name": "Intro consultation",
+      "description": "A first meeting for questions, intake, and choosing the right direction.",
       "price": 180,
       "durationMinutes": 45,
       "isActive": true,
@@ -161,8 +278,8 @@
     {
       "id": "srv_clinic_personal",
       "businessId": "biz_clinic",
-      "name": "טיפול אישי",
-      "description": "מפגש אישי ממוקד לפי הצורך.",
+      "name": "Personal treatment",
+      "description": "A focused personal session based on the customer's needs.",
       "price": 260,
       "durationMinutes": 60,
       "isActive": true,
@@ -172,8 +289,8 @@
     {
       "id": "srv_clinic_training",
       "businessId": "biz_clinic",
-      "name": "אימון אישי",
-      "description": "מפגש אישי לשגרה, מיקוד והרגלים.",
+      "name": "Personal coaching",
+      "description": "A practical session for habits, focus, and routine.",
       "price": 220,
       "durationMinutes": 60,
       "isActive": true,
@@ -183,8 +300,8 @@
     {
       "id": "srv_clinic_package",
       "businessId": "biz_clinic",
-      "name": "חבילת היכרות",
-      "description": "שתי פגישות היכרות במחיר מיוחד.",
+      "name": "Intro package",
+      "description": "Two intro sessions at a special package price.",
       "price": 390,
       "durationMinutes": 90,
       "isActive": true,
@@ -312,6 +429,102 @@
       "startTime": "08:30",
       "endTime": "13:00",
       "isActive": true
+    },
+    {
+      "id": "av_mpldxem1_c4bb5493",
+      "businessId": "biz_mpldxem1_bda87cd5",
+      "dayOfWeek": 0,
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpldxem1_ac39411e",
+      "businessId": "biz_mpldxem1_bda87cd5",
+      "dayOfWeek": 1,
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpldxem1_2af155d8",
+      "businessId": "biz_mpldxem1_bda87cd5",
+      "dayOfWeek": 2,
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpldxem1_8bb48a14",
+      "businessId": "biz_mpldxem1_bda87cd5",
+      "dayOfWeek": 3,
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpldxem1_68054bec",
+      "businessId": "biz_mpldxem1_bda87cd5",
+      "dayOfWeek": 4,
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpljgn3v_2b8e1d40",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "dayOfWeek": 0,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpljgn3v_926afd26",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "dayOfWeek": 1,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "isActive": false
+    },
+    {
+      "id": "av_mpljgn3v_b5316d1a",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "dayOfWeek": 2,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "isActive": false
+    },
+    {
+      "id": "av_mpljgn3v_474f4db9",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "dayOfWeek": 3,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "isActive": false
+    },
+    {
+      "id": "av_mpljgn3v_6191276d",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "dayOfWeek": 4,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpljgn3v_385565cb",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "dayOfWeek": 5,
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "isActive": true
+    },
+    {
+      "id": "av_mpljgn3v_c7ddf742",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "dayOfWeek": 6,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "isActive": false
     }
   ],
   "availabilityExceptions": [
@@ -323,6 +536,20 @@
     }
   ],
   "bookings": [
+    {
+      "id": "book_mpljsui0_10b08fdc",
+      "businessId": "biz_barber",
+      "serviceId": "srv_barber_beard",
+      "customerName": "בן",
+      "customerPhone": "0500000000",
+      "notes": "",
+      "date": "2026-05-25",
+      "startTime": "11:00",
+      "endTime": "11:30",
+      "status": "confirmed",
+      "createdAt": "2026-05-25T18:36:56.807Z",
+      "updatedAt": "2026-05-25T18:36:56.807Z"
+    },
     {
       "id": "book_demo_1",
       "businessId": "biz_barber",
@@ -368,6 +595,16 @@
   ],
   "demoRequests": [
     {
+      "id": "demo_mpl4p21d_2945583c",
+      "status": "new",
+      "createdAt": "2026-05-25T11:34:05.713Z",
+      "ownerName": "דג",
+      "businessType": "דשג",
+      "phone": "052688655",
+      "businessLink": "שדג",
+      "message": "שגשג"
+    },
+    {
       "id": "demo_req_1",
       "ownerName": "נועה מדמון",
       "businessType": "קוסמטיקה",
@@ -380,12 +617,218 @@
   ],
   "users": [
     {
+      "id": "user_mpljgn3v_19ad7a66",
+      "name": "בעל העסק",
+      "email": "nails-jg7pe@bookeasy.local",
+      "role": "business_owner",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "isActive": true
+    },
+    {
+      "id": "user_mpldxem1_3888fc24",
+      "name": "בן",
+      "email": "http-localhost-3000-create-page@bookeasy.local",
+      "role": "business_owner",
+      "businessId": "biz_mpldxem1_bda87cd5",
+      "isActive": true
+    },
+    {
       "id": "user_admin_demo",
       "name": "מנהל דמו",
       "email": "demo@bookeasy.local",
       "role": "business_owner",
       "businessId": "biz_barber",
       "isActive": true
+    }
+  ],
+  "analyticsEvents": [
+    {
+      "id": "evt_mpljte2f_76748909",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T18:37:22.168Z"
+    },
+    {
+      "id": "evt_mpljte0b_79377e3a",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T18:37:22.091Z"
+    },
+    {
+      "id": "evt_mpljnumk_63c312c7",
+      "name": "setup_preview_generated",
+      "metadata": {
+        "services": 3,
+        "defaultLanguage": "he",
+        "category": "barber"
+      },
+      "createdAt": "2026-05-25T18:33:03.692Z"
+    },
+    {
+      "id": "evt_mpljnhda_dfed3d91",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T18:32:46.510Z"
+    },
+    {
+      "id": "evt_mpljiyru_f9de3112",
+      "name": "setup_preview_generated",
+      "metadata": {
+        "services": 4,
+        "defaultLanguage": "he",
+        "category": "nails"
+      },
+      "createdAt": "2026-05-25T18:29:15.787Z"
+    },
+    {
+      "id": "evt_mpljidhw_55b6ff98",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T18:28:48.212Z"
+    },
+    {
+      "id": "evt_mpljgn4j_9c7f6816",
+      "name": "setup_saved",
+      "businessId": "biz_mpljgn3v_3797818f",
+      "metadata": {
+        "services": 4,
+        "defaultLanguage": "he"
+      },
+      "createdAt": "2026-05-25T18:27:27.379Z"
+    },
+    {
+      "id": "evt_mpljg7qc_6480b730",
+      "name": "setup_preview_generated",
+      "metadata": {
+        "services": 4,
+        "defaultLanguage": "he",
+        "category": "nails"
+      },
+      "createdAt": "2026-05-25T18:27:07.428Z"
+    },
+    {
+      "id": "evt_mpljfst7_bacde8a1",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T18:26:48.091Z"
+    },
+    {
+      "id": "evt_mpliivqh_942b7828",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T18:01:12.233Z"
+    },
+    {
+      "id": "evt_mplihi9u_215f4575",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T18:00:08.130Z"
+    },
+    {
+      "id": "evt_mplih8a9_6626e4fe",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:59:55.185Z"
+    },
+    {
+      "id": "evt_mpliejqh_4dffdcbc",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:57:50.057Z"
+    },
+    {
+      "id": "evt_mplie17o_f38b8ca8",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:57:26.052Z"
+    },
+    {
+      "id": "evt_mplid3il_c6636281",
+      "name": "setup_preview_generated",
+      "metadata": {
+        "services": 2,
+        "defaultLanguage": "he",
+        "category": "clinic"
+      },
+      "createdAt": "2026-05-25T17:56:42.381Z"
+    },
+    {
+      "id": "evt_mplicy0k_6be5b9a6",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:56:35.252Z"
+    },
+    {
+      "id": "evt_mplicxyt_35ecbc22",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:56:35.189Z"
+    },
+    {
+      "id": "evt_mplhg55w_fab79917",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:31:04.868Z"
+    },
+    {
+      "id": "evt_mplhfblh_b159cbf9",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:30:26.549Z"
+    },
+    {
+      "id": "evt_mplhcsec_86b0b59f",
+      "name": "setup_preview_generated",
+      "metadata": {
+        "services": 3,
+        "defaultLanguage": "he",
+        "category": "barber"
+      },
+      "createdAt": "2026-05-25T17:28:28.356Z"
+    },
+    {
+      "id": "evt_mplhbaj2_e57a7b2f",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:27:18.542Z"
+    },
+    {
+      "id": "evt_mplhbahj_de45e23b",
+      "name": "setup_started",
+      "metadata": {
+        "route": "smart-setup"
+      },
+      "createdAt": "2026-05-25T17:27:18.487Z"
     }
   ]
 }

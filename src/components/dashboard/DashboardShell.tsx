@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { ComponentType, FormEvent, ReactNode, useMemo, useState } from "react";
 import {
   BadgeDollarSign,
   CalendarClock,
@@ -20,9 +20,11 @@ import {
 } from "lucide-react";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { BusinessIcon, businessIconOptions } from "@/components/ui/BusinessIcon";
-import { bookingStatusLabels, dayNames, formatDuration, formatPrice } from "@/lib/format";
+import { LanguageSelector } from "@/components/ui/LanguageSelector";
+import { languageLabels, useI18n } from "@/i18n";
+import { bookingStatusLabelsByLanguage, dayNamesByLanguage, formatDuration, formatPrice, todayKey } from "@/lib/format";
 import { launchPlan } from "@/lib/pricing";
-import type { AvailabilityRule, Booking, BookingStatus, Business, Service } from "@/lib/types";
+import type { AvailabilityRule, Booking, BookingStatus, Business, Language, Service } from "@/lib/types";
 
 type SummaryCards = {
   totalBookings: number;
@@ -46,28 +48,6 @@ type DashboardShellProps = {
 
 type Tab = "overview" | "bookings" | "services" | "availability" | "profile";
 
-const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
-  { id: "overview", label: "סקירה", icon: LayoutDashboard },
-  { id: "bookings", label: "הזמנות", icon: ClipboardList },
-  { id: "services", label: "שירותים", icon: Settings },
-  { id: "availability", label: "זמינות", icon: CalendarDays },
-  { id: "profile", label: "עמוד העסק", icon: LinkIcon },
-];
-
-const toneOptions: Array<{ value: Business["coverTone"]; label: string }> = [
-  { value: "teal", label: "ירוק מקצועי" },
-  { value: "rose", label: "ורוד עדין" },
-  { value: "blue", label: "כחול רגוע" },
-];
-
-const categoryOptions: Array<{ value: Business["category"]; label: string }> = [
-  { value: "barber", label: "מספרה / ברבר" },
-  { value: "nails", label: "קוסמטיקה / ציפורניים" },
-  { value: "clinic", label: "קליניקה" },
-  { value: "fitness", label: "אימון אישי" },
-  { value: "other", label: "אחר" },
-];
-
 const emptyService = {
   name: "",
   description: "",
@@ -75,11 +55,8 @@ const emptyService = {
   durationMinutes: 45,
 };
 
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export function DashboardShell({ initialData }: DashboardShellProps) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [business, setBusiness] = useState(initialData.business);
   const [services, setServices] = useState(initialData.services);
@@ -90,16 +67,23 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
   const [error, setError] = useState("");
 
   const bookingLink = `/b/${business.slug}`;
-  const today = getToday();
+  const today = todayKey();
   const todayBookings = bookings.filter((booking) => booking.date === today && booking.status !== "cancelled");
   const upcomingBookings = bookings.filter((booking) => booking.date >= today && booking.status !== "cancelled");
+  const tabs = [
+    { id: "overview" as const, label: t.dashboard.tabs.overview, icon: LayoutDashboard },
+    { id: "bookings" as const, label: t.dashboard.tabs.bookings, icon: ClipboardList },
+    { id: "services" as const, label: t.dashboard.tabs.services, icon: Settings },
+    { id: "availability" as const, label: t.dashboard.tabs.availability, icon: CalendarDays },
+    { id: "profile" as const, label: t.dashboard.tabs.profile, icon: LinkIcon },
+  ];
 
   async function refreshSummary() {
     const response = await fetch(`/api/admin/summary?businessId=${business.id}`);
     const data = (await response.json()) as DashboardInitialData & { error?: string };
 
     if (!response.ok) {
-      setError(data.error ?? "לא הצלחנו לרענן את הנתונים");
+      setError(data.error ?? t.dashboard.messages.refreshError);
       return;
     }
 
@@ -125,18 +109,19 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
               <BusinessIcon value={business.businessIcon} className="size-6" />
             </span>
             <div>
-              <p className="text-sm font-bold text-primary">לוח ניהול</p>
+              <p className="text-sm font-bold text-primary">{t.dashboard.title}</p>
               <h1 className="text-3xl font-extrabold text-foreground">{business.name}</h1>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
+            <LanguageSelector />
             <select
               value={business.id}
               onChange={(event) => {
                 window.location.href = `/dashboard?businessId=${event.target.value}`;
               }}
               className="focus-ring min-h-11 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-bold text-foreground"
-              aria-label="בחירת עסק לעריכה"
+              aria-label={t.dashboard.businessSelect}
             >
               {initialData.businesses.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -144,14 +129,14 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
                 </option>
               ))}
             </select>
-            <CopyButton value={bookingLink} label="העתק לינק הזמנות" />
+            <CopyButton value={bookingLink} label={t.dashboard.copyBookingLink} />
             <a
               href={`/b/${business.slug}`}
               target="_blank"
               className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-bold text-white"
             >
               <Eye size={17} aria-hidden="true" />
-              תצוגה מקדימה
+              {t.dashboard.preview}
             </a>
           </div>
         </div>
@@ -167,7 +152,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`focus-ring flex min-h-11 items-center gap-3 rounded-[8px] px-3 py-2 text-right font-bold transition ${
+                  className={`focus-ring flex min-h-11 items-center gap-3 rounded-[8px] px-3 py-2 text-start font-bold transition ${
                     activeTab === tab.id ? "bg-[#e8f3ef] text-primary" : "text-muted hover:bg-[#f4f7f5] hover:text-foreground"
                   }`}
                 >
@@ -180,8 +165,8 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
         </aside>
 
         <section className="grid gap-5">
-          {message ? <p className="rounded-[8px] bg-emerald-50 px-4 py-3 font-bold text-emerald-800">{message}</p> : null}
-          {error ? <p className="rounded-[8px] bg-red-50 px-4 py-3 font-bold text-red-700">{error}</p> : null}
+          {message ? <p className="rounded-[8px] bg-emerald-950/40 px-4 py-3 font-bold text-emerald-100">{message}</p> : null}
+          {error ? <p className="rounded-[8px] bg-red-950/50 px-4 py-3 font-bold text-red-100">{error}</p> : null}
 
           {activeTab === "overview" ? (
             <OverviewTab
@@ -208,12 +193,12 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
                 const data = (await response.json()) as { error?: string };
 
                 if (!response.ok) {
-                  setError(data.error ?? "לא הצלחנו לעדכן סטטוס");
+                  setError(data.error ?? t.dashboard.messages.statusError);
                   return;
                 }
 
                 await refreshSummary();
-                notify("סטטוס ההזמנה עודכן");
+                notify(t.dashboard.messages.statusUpdated);
               }}
             />
           ) : null}
@@ -241,13 +226,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
           ) : null}
 
           {activeTab === "profile" ? (
-            <ProfileTab
-              business={business}
-              setBusiness={setBusiness}
-              bookingLink={bookingLink}
-              notify={notify}
-              setError={setError}
-            />
+            <ProfileTab business={business} setBusiness={setBusiness} bookingLink={bookingLink} notify={notify} setError={setError} />
           ) : null}
         </section>
       </div>
@@ -272,18 +251,41 @@ function OverviewTab({
   business: Business;
   bookingLink: string;
 }) {
+  const { t } = useI18n();
+
   return (
     <>
-      <LaunchPriceNotice />
+      <section className="quiet-card rounded-[8px] bg-[#102f34] p-5 text-white">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid size-11 place-items-center rounded-[8px] bg-white/12 text-[#d7a44a]">
+              <BadgeDollarSign size={22} aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-[#d7a44a]">{t.landing.pricingEyebrow}</p>
+              <h2 className="mt-1 text-2xl font-extrabold">
+                {t.landing.launchPlanName} {launchPlan.priceLabel} {t.landing.periodLabel}
+              </h2>
+              <p className="mt-1 text-white/75">{t.landing.pricingText}</p>
+            </div>
+          </div>
+          <Link
+            href="/smart-setup"
+            className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] bg-white px-4 py-2 text-sm font-bold text-foreground"
+          >
+            {t.dashboard.addAnotherPage}
+          </Link>
+        </div>
+      </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["סך כל ההזמנות", cards.totalBookings],
-          ["הזמנות קרובות", cards.upcomingBookings],
-          ["השירות הכי פופולרי", cards.popularService],
-          ["עמודים פעילים", cards.totalBusinesses],
+          [t.dashboard.cards.totalBookings, cards.totalBookings],
+          [t.dashboard.cards.upcomingBookings, cards.upcomingBookings],
+          [t.dashboard.cards.popularService, cards.popularService || t.dashboard.cards.noData],
+          [t.dashboard.cards.activePages, cards.totalBusinesses],
         ].map(([label, value]) => (
-          <article key={label} className="soft-card rounded-[8px] p-5">
+          <article key={String(label)} className="soft-card rounded-[8px] p-5">
             <p className="text-sm font-bold text-muted">{label}</p>
             <p className="mt-3 text-3xl font-extrabold text-foreground">{value}</p>
           </article>
@@ -291,54 +293,54 @@ function OverviewTab({
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
-        <Panel title="הזמנות להיום" icon={CalendarClock}>
+        <Panel title={t.dashboard.todayBookings} icon={CalendarClock}>
           {todayBookings.length ? (
             <BookingList bookings={todayBookings} services={services} compact />
           ) : (
-            <EmptyState title="אין הזמנות להיום" text="כשייכנסו הזמנות להיום הן יופיעו כאן." />
+            <EmptyState title={t.dashboard.empty.todayTitle} text={t.dashboard.empty.todayText} />
           )}
         </Panel>
 
-        <Panel title="הזמנות קרובות" icon={ClipboardList}>
+        <Panel title={t.dashboard.upcomingBookings} icon={ClipboardList}>
           {upcomingBookings.length ? (
             <BookingList bookings={upcomingBookings.slice(0, 5)} services={services} compact />
           ) : (
-            <EmptyState title="אין הזמנות קרובות" text="זה מקום טוב לראות מה מחכה לך השבוע." />
+            <EmptyState title={t.dashboard.empty.upcomingTitle} text={t.dashboard.empty.upcomingText} />
           )}
         </Panel>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <Panel title="עמודים שנפתחו" icon={ClipboardList}>
+        <Panel title={t.dashboard.createdPages} icon={ClipboardList}>
           {businesses.length ? (
             <div className="grid gap-3">
-              {businesses.slice(0, 3).map((business) => ({ ...business, businessType: `/b/${business.slug}` })).map((request) => (
-                <div key={request.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
-                  <p className="font-extrabold">{request.name}</p>
+              {businesses.slice(0, 3).map((item) => (
+                <div key={item.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+                  <p className="font-extrabold">{item.name}</p>
                   <p className="mt-1 text-sm text-muted">
-                    {request.businessType} · <span className="ltr inline-block">{request.phone}</span>
+                    /b/{item.slug} · <span className="ltr inline-block">{item.phone}</span>
                   </p>
-                  <Link className="mt-3 inline-flex text-sm font-extrabold text-primary" href={`/dashboard?businessId=${request.id}`}>
-                    עריכת עמוד
+                  <Link className="mt-3 inline-flex text-sm font-extrabold text-primary" href={`/dashboard?businessId=${item.id}`}>
+                    {t.dashboard.tabs.profile}
                   </Link>
                 </div>
               ))}
             </div>
           ) : (
-            <EmptyState title="אין עמודים עדיין" text="אחרי רכישה, בעל העסק יוצר כאן עמוד ומקבל לינק לפרסום." />
+            <EmptyState title={t.dashboard.empty.pagesTitle} text={t.dashboard.empty.pagesText} />
           )}
         </Panel>
 
-        <Panel title="תצוגה מקדימה של דף ההזמנות" icon={Eye}>
+        <Panel title={t.dashboard.publicPreview} icon={Eye}>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-muted">כך נראה הלינק שהלקוחות יקבלו.</p>
+            <p className="text-sm text-muted">{t.dashboard.publicPreviewText}</p>
             <a className="focus-ring inline-flex items-center gap-2 rounded-[8px] font-bold text-primary" href={`/b/${business.slug}`} target="_blank">
-              פתיחה בחלון חדש
+              {t.dashboard.openNewWindow}
               <ExternalLink size={16} aria-hidden="true" />
             </a>
           </div>
           <div className="h-[460px] overflow-hidden rounded-[8px] border border-line bg-white">
-            <iframe title="תצוגה מקדימה של דף ההזמנות" src={bookingLink || `/b/${business.slug}`} className="h-full w-full" />
+            <iframe title={t.dashboard.publicPreview} src={bookingLink || `/b/${business.slug}`} className="h-full w-full" />
           </div>
         </Panel>
       </div>
@@ -355,8 +357,9 @@ function BookingsTab({
   services: Service[];
   onStatusChange: (id: string, status: BookingStatus) => Promise<void>;
 }) {
+  const { language, t } = useI18n();
   const [filter, setFilter] = useState<"upcoming" | "past" | "all">("upcoming");
-  const today = getToday();
+  const today = todayKey();
   const filteredBookings = bookings.filter((booking) => {
     if (filter === "upcoming") {
       return booking.date >= today;
@@ -368,12 +371,12 @@ function BookingsTab({
   });
 
   return (
-    <Panel title="ניהול הזמנות" icon={ClipboardList}>
+    <Panel title={t.dashboard.tabs.bookings} icon={ClipboardList}>
       <div className="mb-4 flex flex-wrap gap-2">
         {[
-          ["upcoming", "קרובות"],
-          ["past", "קודמות"],
-          ["all", "הכול"],
+          ["upcoming", t.dashboard.filters.upcoming],
+          ["past", t.dashboard.filters.past],
+          ["all", t.dashboard.filters.all],
         ].map(([value, label]) => (
           <button
             key={value}
@@ -390,14 +393,14 @@ function BookingsTab({
 
       {filteredBookings.length ? (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-separate border-spacing-0 text-right">
+          <table className="w-full min-w-[760px] border-separate border-spacing-0 text-start">
             <thead>
               <tr className="text-sm text-muted">
-                <th className="border-b border-line px-3 py-3">לקוח</th>
-                <th className="border-b border-line px-3 py-3">טלפון</th>
-                <th className="border-b border-line px-3 py-3">שירות</th>
-                <th className="border-b border-line px-3 py-3">תאריך ושעה</th>
-                <th className="border-b border-line px-3 py-3">סטטוס</th>
+                <th className="border-b border-line px-3 py-3">{t.dashboard.table.customer}</th>
+                <th className="border-b border-line px-3 py-3">{t.dashboard.table.phone}</th>
+                <th className="border-b border-line px-3 py-3">{t.dashboard.table.service}</th>
+                <th className="border-b border-line px-3 py-3">{t.dashboard.table.dateTime}</th>
+                <th className="border-b border-line px-3 py-3">{t.dashboard.table.status}</th>
               </tr>
             </thead>
             <tbody>
@@ -406,8 +409,8 @@ function BookingsTab({
                 return (
                   <tr key={booking.id}>
                     <td className="border-b border-line px-3 py-3 font-bold">{booking.customerName}</td>
-                    <td className="ltr border-b border-line px-3 py-3 text-right">{booking.customerPhone}</td>
-                    <td className="border-b border-line px-3 py-3">{service?.name ?? "שירות לא נמצא"}</td>
+                    <td className="ltr border-b border-line px-3 py-3 text-start">{booking.customerPhone}</td>
+                    <td className="border-b border-line px-3 py-3">{service?.name ?? t.dashboard.table.service}</td>
                     <td className="border-b border-line px-3 py-3">
                       {booking.date} · <span className="ltr inline-block">{booking.startTime}</span>
                     </td>
@@ -417,7 +420,7 @@ function BookingsTab({
                         onChange={(event) => onStatusChange(booking.id, event.target.value as BookingStatus)}
                         className="focus-ring rounded-[8px] border border-line bg-white px-3 py-2 font-bold"
                       >
-                        {Object.entries(bookingStatusLabels).map(([value, label]) => (
+                        {Object.entries(bookingStatusLabelsByLanguage[language]).map(([value, label]) => (
                           <option key={value} value={value}>
                             {label}
                           </option>
@@ -431,7 +434,7 @@ function BookingsTab({
           </table>
         </div>
       ) : (
-        <EmptyState title="אין הזמנות להצגה" text="אפשר לשנות סינון או לפתוח את דף ההזמנות וליצור הזמנה לבדיקה." />
+        <EmptyState title={t.dashboard.empty.bookingsTitle} text={t.dashboard.empty.bookingsText} />
       )}
     </Panel>
   );
@@ -452,6 +455,7 @@ function ServicesTab({
   notify: (text: string) => void;
   setError: (text: string) => void;
 }) {
+  const { language, t } = useI18n();
   const [newService, setNewService] = useState(emptyService);
 
   async function add(event: FormEvent<HTMLFormElement>) {
@@ -464,13 +468,13 @@ function ServicesTab({
     const data = (await response.json()) as { error?: string };
 
     if (!response.ok) {
-      setError(data.error ?? "לא הצלחנו להוסיף שירות");
+      setError(data.error ?? t.dashboard.messages.serviceAddError);
       return;
     }
 
     setNewService(emptyService);
     await refreshSummary();
-    notify("השירות נוסף");
+    notify(t.dashboard.messages.serviceAdded);
   }
 
   async function save(service: Service) {
@@ -482,81 +486,80 @@ function ServicesTab({
     const data = (await response.json()) as { error?: string };
 
     if (!response.ok) {
-      setError(data.error ?? "לא הצלחנו לשמור שירות");
+      setError(data.error ?? t.dashboard.messages.serviceSaveError);
       return;
     }
 
     await refreshSummary();
-    notify("השירות נשמר");
+    notify(t.dashboard.messages.serviceSaved);
   }
 
-  async function remove(serviceId: string) {
-    const response = await fetch(`/api/admin/services/${serviceId}`, { method: "DELETE" });
-    const data = (await response.json()) as { error?: string; deactivated?: boolean };
+  async function remove(id: string) {
+    const response = await fetch(`/api/admin/services/${id}`, { method: "DELETE" });
+    const data = (await response.json()) as { error?: string };
 
     if (!response.ok) {
-      setError(data.error ?? "לא הצלחנו למחוק שירות");
+      setError(data.error ?? t.dashboard.messages.serviceDeleteError);
       return;
     }
 
     await refreshSummary();
-    notify(data.deactivated ? "יש הזמנות פעילות, לכן השירות כובה במקום להימחק" : "השירות נמחק");
+    notify(t.dashboard.messages.serviceDeleted);
   }
 
   return (
     <div className="grid gap-5">
-      <Panel title="הוספת שירות" icon={Plus}>
-        <form onSubmit={add} className="grid gap-4 lg:grid-cols-[1fr_1fr_120px_140px_auto] lg:items-end">
-          <Field label="שם שירות">
+      <Panel title={t.dashboard.services.addTitle} icon={Plus}>
+        <form onSubmit={add} className="grid gap-4 md:grid-cols-[1fr_1fr_120px_150px_auto] md:items-end">
+          <Field label={t.dashboard.services.name}>
             <input
               required
               value={newService.name}
               onChange={(event) => setNewService((current) => ({ ...current, name: event.target.value }))}
-              className="focus-ring rounded-[8px] border border-line px-3 py-3"
-              placeholder="לדוגמה: תספורת גבר"
+              className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
             />
           </Field>
-          <Field label="תיאור">
+          <Field label={t.dashboard.services.description}>
             <input
               value={newService.description}
               onChange={(event) => setNewService((current) => ({ ...current, description: event.target.value }))}
-              className="focus-ring rounded-[8px] border border-line px-3 py-3"
-              placeholder="מה כולל השירות?"
+              className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
             />
           </Field>
-          <Field label="מחיר">
+          <Field label={t.dashboard.services.price}>
             <input
+              required
               type="number"
-              min="0"
               value={newService.price}
               onChange={(event) => setNewService((current) => ({ ...current, price: Number(event.target.value) }))}
-              className="focus-ring rounded-[8px] border border-line px-3 py-3"
+              className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
             />
           </Field>
-          <Field label="משך בדקות">
+          <Field label={t.dashboard.services.duration}>
             <input
+              required
               type="number"
-              min="15"
-              step="5"
+              min={15}
+              step={15}
               value={newService.durationMinutes}
               onChange={(event) => setNewService((current) => ({ ...current, durationMinutes: Number(event.target.value) }))}
-              className="focus-ring rounded-[8px] border border-line px-3 py-3"
+              className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
             />
           </Field>
           <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-3 font-extrabold text-white">
             <Plus size={18} aria-hidden="true" />
-            הוסף
+            {t.dashboard.services.add}
           </button>
         </form>
       </Panel>
 
-      <Panel title="ניהול שירותים" icon={Settings}>
+      <Panel title={t.dashboard.services.existingTitle} icon={Settings}>
         {services.length ? (
           <div className="grid gap-3">
             {services.map((service) => (
               <div key={service.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
-                <div className="grid gap-3 lg:grid-cols-[1fr_1fr_110px_120px_auto] lg:items-end">
-                  <Field label="שם שירות">
+                <div className="grid gap-3 md:grid-cols-[1fr_1fr_110px_130px]">
+                  <Field label={t.dashboard.services.name}>
                     <input
                       value={service.name}
                       onChange={(event) =>
@@ -565,18 +568,16 @@ function ServicesTab({
                       className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
                     />
                   </Field>
-                  <Field label="תיאור">
+                  <Field label={t.dashboard.services.description}>
                     <input
                       value={service.description}
                       onChange={(event) =>
-                        setServices(
-                          services.map((item) => (item.id === service.id ? { ...item, description: event.target.value } : item)),
-                        )
+                        setServices(services.map((item) => (item.id === service.id ? { ...item, description: event.target.value } : item)))
                       }
                       className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
                     />
                   </Field>
-                  <Field label="מחיר">
+                  <Field label={t.dashboard.services.price}>
                     <input
                       type="number"
                       value={service.price}
@@ -586,7 +587,7 @@ function ServicesTab({
                       className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
                     />
                   </Field>
-                  <Field label="משך">
+                  <Field label={t.dashboard.services.duration}>
                     <input
                       type="number"
                       value={service.durationMinutes}
@@ -598,6 +599,12 @@ function ServicesTab({
                       className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
                     />
                   </Field>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-bold text-muted">
+                    {formatPrice(service.price, language)} · {formatDuration(service.durationMinutes, language)} ·{" "}
+                    {service.isActive ? t.common.active : t.common.inactive}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -605,7 +612,7 @@ function ServicesTab({
                       className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-extrabold text-white"
                     >
                       <Save size={16} aria-hidden="true" />
-                      שמור
+                      {t.common.save}
                     </button>
                     <button
                       type="button"
@@ -613,26 +620,23 @@ function ServicesTab({
                       className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-extrabold"
                     >
                       <ToggleLeft size={16} aria-hidden="true" />
-                      {service.isActive ? "כבה" : "הפעל"}
+                      {service.isActive ? t.dashboard.services.deactivate : t.dashboard.services.activate}
                     </button>
                     <button
                       type="button"
                       onClick={() => remove(service.id)}
-                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-red-100 bg-white px-3 py-2 text-sm font-extrabold text-red-700"
+                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-red-900/50 bg-white px-3 py-2 text-sm font-extrabold text-red-200"
                     >
                       <Trash2 size={16} aria-hidden="true" />
-                      מחק
+                      {t.dashboard.services.remove}
                     </button>
                   </div>
                 </div>
-                <p className="mt-3 text-sm font-bold text-muted">
-                  {formatPrice(service.price)} · {formatDuration(service.durationMinutes)} · {service.isActive ? "פעיל" : "כבוי"}
-                </p>
               </div>
             ))}
           </div>
         ) : (
-          <EmptyState title="אין שירותים" text="הוסיפו שירות ראשון כדי שלקוחות יוכלו להזמין." />
+          <EmptyState title={t.dashboard.services.emptyTitle} text={t.dashboard.services.emptyText} />
         )}
       </Panel>
     </div>
@@ -654,6 +658,8 @@ function AvailabilityTab({
   notify: (text: string) => void;
   setError: (text: string) => void;
 }) {
+  const { language, t } = useI18n();
+  const dayNames = dayNamesByLanguage[language];
   const normalizedRules = useMemo(
     () =>
       dayNames.map((_, dayOfWeek) => {
@@ -669,7 +675,7 @@ function AvailabilityTab({
           }
         );
       }),
-    [businessId, rules],
+    [businessId, dayNames, rules],
   );
 
   async function save() {
@@ -681,12 +687,12 @@ function AvailabilityTab({
     const data = (await response.json()) as { error?: string };
 
     if (!response.ok) {
-      setError(data.error ?? "לא הצלחנו לשמור זמינות");
+      setError(data.error ?? t.dashboard.messages.availabilityError);
       return;
     }
 
     await refreshSummary();
-    notify("הזמינות נשמרה");
+    notify(t.dashboard.messages.availabilitySaved);
   }
 
   function updateRule(dayOfWeek: number, patch: Partial<AvailabilityRule>) {
@@ -694,10 +700,8 @@ function AvailabilityTab({
   }
 
   return (
-    <Panel title="ניהול זמינות" icon={CalendarDays}>
-      <p className="mb-5 leading-7 text-muted">
-        בחרו ימי עבודה ושעות עבודה. המערכת לא תאפשר שתי הזמנות חופפות באותה שעה.
-      </p>
+    <Panel title={t.dashboard.availability.title} icon={CalendarDays}>
+      <p className="mb-5 leading-7 text-muted">{t.dashboard.availability.text}</p>
       <div className="grid gap-3">
         {normalizedRules.map((rule) => (
           <div key={rule.dayOfWeek} className="grid gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 sm:grid-cols-[130px_1fr_1fr] sm:items-center">
@@ -708,24 +712,24 @@ function AvailabilityTab({
                 onChange={(event) => updateRule(rule.dayOfWeek, { isActive: event.target.checked })}
                 className="size-5 accent-[var(--primary)]"
               />
-              יום {dayNames[rule.dayOfWeek]}
+              {dayNames[rule.dayOfWeek]}
             </label>
-            <Field label="שעת התחלה">
+            <Field label={t.dashboard.availability.start}>
               <input
                 type="time"
                 dir="ltr"
                 value={rule.startTime}
                 onChange={(event) => updateRule(rule.dayOfWeek, { startTime: event.target.value })}
-                className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-right"
+                className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-start"
               />
             </Field>
-            <Field label="שעת סיום">
+            <Field label={t.dashboard.availability.end}>
               <input
                 type="time"
                 dir="ltr"
                 value={rule.endTime}
                 onChange={(event) => updateRule(rule.dayOfWeek, { endTime: event.target.value })}
-                className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-right"
+                className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-start"
               />
             </Field>
           </div>
@@ -733,7 +737,7 @@ function AvailabilityTab({
       </div>
       <button onClick={save} className="focus-ring mt-5 inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white">
         <Save size={18} aria-hidden="true" />
-        שמור זמינות
+        {t.dashboard.availability.save}
       </button>
     </Panel>
   );
@@ -752,6 +756,8 @@ function ProfileTab({
   notify: (text: string) => void;
   setError: (text: string) => void;
 }) {
+  const { t } = useI18n();
+
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const response = await fetch("/api/admin/business", {
@@ -762,17 +768,30 @@ function ProfileTab({
     const data = (await response.json()) as { business?: Business; error?: string };
 
     if (!response.ok || !data.business) {
-      setError(data.error ?? "לא הצלחנו לשמור את פרטי העסק");
+      setError(data.error ?? t.dashboard.messages.profileError);
       return;
     }
 
     setBusiness(data.business);
-    notify("פרטי העסק נשמרו");
+    notify(t.dashboard.messages.profileSaved);
+  }
+
+  function toggleSupportedLanguage(nextLanguage: Language) {
+    const exists = business.supportedLanguages.includes(nextLanguage);
+    const supportedLanguages = exists
+      ? business.supportedLanguages.filter((language) => language !== nextLanguage)
+      : [...business.supportedLanguages, nextLanguage];
+    const normalized = supportedLanguages.length ? supportedLanguages : [nextLanguage];
+    setBusiness({
+      ...business,
+      supportedLanguages: normalized,
+      defaultLanguage: normalized.includes(business.defaultLanguage) ? business.defaultLanguage : normalized[0],
+    });
   }
 
   return (
     <div className="grid gap-5">
-      <Panel title="הגדרות פרופיל עסק" icon={Settings}>
+      <Panel title={t.dashboard.profile.title} icon={Settings}>
         <form onSubmit={save} className="grid gap-4">
           <div className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -781,8 +800,8 @@ function ProfileTab({
                   <BusinessIcon value={business.businessIcon} className="size-8" />
                 </span>
                 <div>
-                  <p className="font-extrabold">אייקון העסק</p>
-                  <p className="text-sm text-muted">האייקון מופיע בראש דף ההזמנות של העסק.</p>
+                  <p className="font-extrabold">{t.dashboard.profile.iconTitle}</p>
+                  <p className="text-sm text-muted">{t.dashboard.profile.iconText}</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -794,7 +813,7 @@ function ProfileTab({
                     className={`focus-ring grid size-10 place-items-center rounded-[8px] border ${
                       business.businessIcon === option.value ? "border-primary bg-[#e8f3ef] text-primary" : "border-line bg-white text-muted"
                     }`}
-                    aria-label={`בחירת אייקון ${option.label}`}
+                    aria-label={option.value}
                   >
                     <BusinessIcon value={option.value} className="size-5" />
                   </button>
@@ -802,78 +821,136 @@ function ProfileTab({
               </div>
             </div>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="שם העסק">
+            <Field label={t.dashboard.profile.businessName}>
               <input
                 value={business.name}
                 onChange={(event) => setBusiness({ ...business, name: event.target.value })}
                 className="focus-ring rounded-[8px] border border-line px-3 py-3"
               />
             </Field>
-            <Field label="טלפון">
+            <Field label={t.dashboard.profile.phone}>
               <input
                 dir="ltr"
                 value={business.phone}
                 onChange={(event) => setBusiness({ ...business, phone: event.target.value })}
-                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-right"
+                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-start"
               />
             </Field>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="לינק עמוד ההזמנות">
+            <Field label={t.dashboard.profile.bookingSlug}>
               <input
                 dir="ltr"
                 value={business.slug}
                 onChange={(event) => setBusiness({ ...business, slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
-                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-right"
+                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-start"
                 placeholder="barber-demo"
               />
             </Field>
-            <Field label="סוג העסק">
+            <Field label={t.dashboard.profile.category}>
               <select
                 value={business.category}
                 onChange={(event) => setBusiness({ ...business, category: event.target.value as Business["category"] })}
                 className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
               >
-                {categoryOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {Object.entries(t.categories).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
                   </option>
                 ))}
               </select>
             </Field>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="וואטסאפ">
+            <Field label={t.dashboard.profile.whatsapp}>
               <input
                 dir="ltr"
                 value={business.whatsapp}
                 onChange={(event) => setBusiness({ ...business, whatsapp: event.target.value })}
-                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-right"
+                className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-start"
               />
             </Field>
-            <Field label="צבע עמוד ההזמנות">
+            <Field label={t.dashboard.profile.tone}>
               <select
                 value={business.coverTone}
                 onChange={(event) => setBusiness({ ...business, coverTone: event.target.value as Business["coverTone"] })}
                 className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
               >
-                {toneOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {Object.entries(t.tones).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
                   </option>
                 ))}
               </select>
             </Field>
           </div>
-          <Field label="תיאור קצר">
+
+          <div className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+            <h3 className="font-extrabold">{t.languages.pageSettings}</h3>
+            <p className="mt-1 text-sm leading-6 text-muted">{t.languages.helper}</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <Field label={t.languages.defaultLanguage}>
+                <select
+                  value={business.defaultLanguage}
+                  onChange={(event) => {
+                    const nextLanguage = event.target.value as Language;
+                    setBusiness({
+                      ...business,
+                      defaultLanguage: nextLanguage,
+                      supportedLanguages: business.supportedLanguages.includes(nextLanguage)
+                        ? business.supportedLanguages
+                        : [...business.supportedLanguages, nextLanguage],
+                    });
+                  }}
+                  className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
+                >
+                  {(["he", "en"] as Language[]).map((option) => (
+                    <option key={option} value={option}>
+                      {languageLabels[option]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <div className="grid gap-2 text-sm font-bold">
+                {t.languages.supportedLanguages}
+                <div className="flex flex-wrap gap-2">
+                  {(["he", "en"] as Language[]).map((option) => (
+                    <label key={option} className="inline-flex min-h-11 items-center gap-2 rounded-[8px] border border-line bg-white px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={business.supportedLanguages.includes(option)}
+                        onChange={() => toggleSupportedLanguage(option)}
+                        className="size-4 accent-[var(--primary)]"
+                      />
+                      {languageLabels[option]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <label className="flex items-center gap-3 rounded-[8px] border border-line bg-white px-3 py-3 text-sm font-bold">
+                <input
+                  type="checkbox"
+                  checked={business.showLanguageSwitcher}
+                  onChange={(event) => setBusiness({ ...business, showLanguageSwitcher: event.target.checked })}
+                  className="size-5 accent-[var(--primary)]"
+                />
+                {t.languages.showSwitcher}
+              </label>
+            </div>
+          </div>
+
+          <Field label={t.dashboard.profile.shortDescription}>
             <input
               value={business.shortDescription}
               onChange={(event) => setBusiness({ ...business, shortDescription: event.target.value })}
               className="focus-ring rounded-[8px] border border-line px-3 py-3"
             />
           </Field>
-          <Field label="תיאור מלא">
+          <Field label={t.dashboard.profile.description}>
             <textarea
               value={business.description}
               onChange={(event) => setBusiness({ ...business, description: event.target.value })}
@@ -881,14 +958,14 @@ function ProfileTab({
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="כותרת קאבר">
+            <Field label={t.dashboard.profile.coverTitle}>
               <input
                 value={business.coverTitle}
                 onChange={(event) => setBusiness({ ...business, coverTitle: event.target.value })}
                 className="focus-ring rounded-[8px] border border-line px-3 py-3"
               />
             </Field>
-            <Field label="תת כותרת קאבר">
+            <Field label={t.dashboard.profile.coverSubtitle}>
               <input
                 value={business.coverSubtitle}
                 onChange={(event) => setBusiness({ ...business, coverSubtitle: event.target.value })}
@@ -896,7 +973,7 @@ function ProfileTab({
               />
             </Field>
           </div>
-          <Field label="כתובת">
+          <Field label={t.dashboard.profile.address}>
             <input
               value={business.address}
               onChange={(event) => setBusiness({ ...business, address: event.target.value })}
@@ -905,14 +982,14 @@ function ProfileTab({
           </Field>
           <button className="focus-ring inline-flex min-h-12 w-fit items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white">
             <Save size={18} aria-hidden="true" />
-            שמור פרופיל
+            {t.dashboard.profile.save}
           </button>
         </form>
       </Panel>
 
-      <Panel title="לינק ההזמנות שלך" icon={LinkIcon}>
+      <Panel title={t.dashboard.profile.bookingLink} icon={LinkIcon}>
         <div className="flex flex-col gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 sm:flex-row sm:items-center sm:justify-between">
-          <span className="ltr break-all text-right font-bold">{bookingLink}</span>
+          <span className="ltr break-all text-start font-bold">{bookingLink}</span>
           <CopyButton value={bookingLink} />
         </div>
       </Panel>
@@ -921,6 +998,8 @@ function ProfileTab({
 }
 
 function BookingList({ bookings, services, compact = false }: { bookings: Booking[]; services: Service[]; compact?: boolean }) {
+  const { language } = useI18n();
+
   return (
     <div className="grid gap-3">
       {bookings.map((booking) => {
@@ -931,11 +1010,11 @@ function BookingList({ bookings, services, compact = false }: { bookings: Bookin
               <div>
                 <p className="font-extrabold">{booking.customerName}</p>
                 <p className="mt-1 text-sm text-muted">
-                  {service?.name ?? "שירות לא נמצא"} · <span className="ltr inline-block">{booking.startTime}</span>
+                  {service?.name} · <span className="ltr inline-block">{booking.startTime}</span>
                 </p>
               </div>
               <span className="w-fit rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-extrabold text-primary">
-                {bookingStatusLabels[booking.status]}
+                {bookingStatusLabelsByLanguage[language][booking.status]}
               </span>
             </div>
             {!compact && booking.notes ? <p className="mt-3 text-sm leading-6 text-muted">{booking.notes}</p> : null}
@@ -946,34 +1025,9 @@ function BookingList({ bookings, services, compact = false }: { bookings: Bookin
   );
 }
 
-function LaunchPriceNotice() {
-  return (
-    <section className="quiet-card rounded-[8px] bg-[#102f34] p-5 text-white">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-3">
-          <span className="grid size-11 place-items-center rounded-[8px] bg-white/12 text-[#d7a44a]">
-            <BadgeDollarSign size={22} aria-hidden="true" />
-          </span>
-          <div>
-            <p className="text-sm font-bold text-[#d7a44a]">{launchPlan.badge}</p>
-            <h2 className="mt-1 text-2xl font-extrabold">
-              {launchPlan.name} ב-{launchPlan.priceLabel} {launchPlan.periodLabel}
-            </h2>
-            <p className="mt-1 text-white/75">{launchPlan.lockMessage}</p>
-          </div>
-        </div>
-        <Link
-          href="/#create-page"
-          className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] bg-white px-4 py-2 text-sm font-bold text-foreground"
-        >
-          צור עמוד נוסף
-        </Link>
-      </div>
-    </section>
-  );
-}
+type IconComponent = ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 
-function Panel({ title, icon: Icon, children }: { title: string; icon: typeof LayoutDashboard; children: React.ReactNode }) {
+function Panel({ title, icon: Icon, children }: { title: string; icon: IconComponent; children: ReactNode }) {
   return (
     <section className="soft-card rounded-[8px] p-5">
       <div className="mb-5 flex items-center gap-2">
@@ -985,9 +1039,9 @@ function Panel({ title, icon: Icon, children }: { title: string; icon: typeof La
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, className = "" }: { label: string; children: ReactNode; className?: string }) {
   return (
-    <label className="grid gap-2 text-sm font-bold text-foreground">
+    <label className={`grid gap-2 text-sm font-bold text-foreground ${className}`}>
       {label}
       {children}
     </label>

@@ -1,6 +1,8 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { TextDecoder } from "node:util";
 import { seedStore } from "@/lib/seed-data";
+import type { SmartSetupDraft } from "@/lib/smart-setup";
 import type {
   AvailabilityRule,
   Booking,
@@ -10,6 +12,8 @@ import type {
   BusinessBundle,
   BusinessCategory,
   DemoRequest,
+  AnalyticsEventName,
+  Language,
   Service,
   Slot,
 } from "@/lib/types";
@@ -28,6 +32,138 @@ function isEmptyStore(store: BookeasyStore) {
   return !store.businesses.length && !store.services.length;
 }
 
+const demoLanguageDefaults: Record<string, Language> = {
+  "barber-demo": "he",
+  "nails-demo": "he",
+  "clinic-demo": "en",
+};
+
+const windows1255Decoder = new TextDecoder("windows-1255");
+const utf8Decoder = new TextDecoder("utf-8", { fatal: true });
+const windows1255BytesByCharacter = new Map<string, number>();
+
+for (let byte = 0; byte < 256; byte += 1) {
+  const character = windows1255Decoder.decode(Uint8Array.of(byte));
+  if (!windows1255BytesByCharacter.has(character)) {
+    windows1255BytesByCharacter.set(character, byte);
+  }
+}
+
+function countMojibakeMarkers(value: string) {
+  return value.match(/׳/g)?.length ?? 0;
+}
+
+function repairHebrewMojibake(value: string) {
+  if (countMojibakeMarkers(value) < 2) {
+    return value;
+  }
+
+  const bytes: number[] = [];
+  for (const character of value) {
+    const byte = windows1255BytesByCharacter.get(character);
+    if (byte === undefined) {
+      return value;
+    }
+    bytes.push(byte);
+  }
+
+  try {
+    const repaired = utf8Decoder.decode(Uint8Array.from(bytes));
+    if (countMojibakeMarkers(repaired) < countMojibakeMarkers(value) && /[\u0590-\u05ff]/.test(repaired)) {
+      return repaired;
+    }
+  } catch {
+    return value;
+  }
+
+  return value;
+}
+
+function repairMojibakeValue<T>(value: T): T {
+  if (typeof value === "string") {
+    return repairHebrewMojibake(value) as T;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => repairMojibakeValue(item)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+      (value as Record<string, unknown>)[key] = repairMojibakeValue(item);
+    }
+  }
+
+  return value;
+}
+
+function normalizeLanguage(value: unknown): Language {
+  return value === "en" ? "en" : "he";
+}
+
+function normalizeSupportedLanguages(value: unknown): Language[] {
+  if (!Array.isArray(value)) {
+    return ["he", "en"];
+  }
+
+  const languages = value.map(normalizeLanguage).filter((language, index, list) => list.indexOf(language) === index);
+  return languages.length ? languages : ["he", "en"];
+}
+
+function normalizeStore(store: BookeasyStore): BookeasyStore {
+  repairMojibakeValue(store);
+  store.analyticsEvents ??= [];
+
+  for (const business of store.businesses) {
+    business.defaultLanguage = normalizeLanguage(business.defaultLanguage ?? demoLanguageDefaults[business.slug]);
+    business.supportedLanguages = normalizeSupportedLanguages(business.supportedLanguages);
+    business.businessIcon ||= categoryDefaults[business.category]?.icon ?? "store";
+    business.profileImage ??= "";
+    if (typeof business.showLanguageSwitcher !== "boolean") {
+      business.showLanguageSwitcher = true;
+    }
+
+    if (business.slug === "clinic-demo" && business.defaultLanguage === "en") {
+      business.name = "Balance Clinic";
+      business.description =
+        "A small demo clinic for consultation and personal care appointments. Customers choose a service, available time, and contact details in one guided flow.";
+      business.shortDescription = "Consultation and personal care appointments through one booking link.";
+      business.address = "4 Health Avenue, Givatayim";
+      business.coverTitle = "Book a consultation or personal session";
+      business.coverSubtitle = "Clear services, prices, and available times in one smart link";
+    }
+  }
+
+  const englishClinicServices: Record<string, Pick<Service, "name" | "description">> = {
+    srv_clinic_intro: {
+      name: "Intro consultation",
+      description: "A first meeting for questions, intake, and choosing the right direction.",
+    },
+    srv_clinic_personal: {
+      name: "Personal treatment",
+      description: "A focused personal session based on the customer's needs.",
+    },
+    srv_clinic_training: {
+      name: "Personal coaching",
+      description: "A practical session for habits, focus, and routine.",
+    },
+    srv_clinic_package: {
+      name: "Intro package",
+      description: "Two intro sessions at a special package price.",
+    },
+  };
+
+  for (const service of store.services) {
+    const clinicCopy = englishClinicServices[service.id];
+    if (clinicCopy) {
+      service.name = clinicCopy.name;
+      service.description = clinicCopy.description;
+    }
+  }
+
+  return store;
+}
+
 async function ensureDataFile() {
   await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
 
@@ -44,12 +180,12 @@ export async function readStore(): Promise<BookeasyStore> {
   const parsed = JSON.parse(content) as BookeasyStore;
 
   if (isEmptyStore(parsed)) {
-    const seeded = cloneStore(seedStore);
+    const seeded = normalizeStore(cloneStore(seedStore));
     await writeStore(seeded);
     return seeded;
   }
 
-  return parsed;
+  return normalizeStore(parsed);
 }
 
 export async function writeStore(store: BookeasyStore) {
@@ -247,7 +383,7 @@ export async function createBooking(input: {
       date: input.date,
       startTime: input.startTime,
       endTime,
-      status: "pending",
+      status: "confirmed",
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -271,6 +407,26 @@ export async function createDemoRequest(input: Omit<DemoRequest, "id" | "status"
   });
 }
 
+export async function trackEvent(input: {
+  name: AnalyticsEventName;
+  businessId?: string;
+  metadata?: Record<string, string | number | boolean>;
+}) {
+  return updateStore((store) => {
+    const event = {
+      id: makeId("evt"),
+      name: input.name,
+      businessId: input.businessId,
+      metadata: input.metadata,
+      createdAt: new Date().toISOString(),
+    };
+
+    store.analyticsEvents.unshift(event);
+    store.analyticsEvents = store.analyticsEvents.slice(0, 500);
+    return event;
+  });
+}
+
 const categoryDefaults: Record<BusinessCategory, { icon: string; coverTone: Business["coverTone"] }> = {
   barber: { icon: "scissors", coverTone: "teal" },
   nails: { icon: "sparkles", coverTone: "rose" },
@@ -290,6 +446,9 @@ export async function createBusinessPage(input: {
   serviceName: string;
   servicePrice: number;
   serviceDurationMinutes: number;
+  defaultLanguage?: Language;
+  supportedLanguages?: Language[];
+  showLanguageSwitcher?: boolean;
 }) {
   return updateStore((store) => {
     if (store.businesses.some((business) => business.slug === input.slug)) {
@@ -304,16 +463,20 @@ export async function createBusinessPage(input: {
       slug: input.slug,
       name: input.businessName,
       businessIcon: defaults.icon,
+      profileImage: "",
       category: input.category,
-      description: `עמוד הזמנות של ${input.businessName}. בוחרים שירות, שעה פנויה ופרטים, והבקשה נכנסת בצורה מסודרת.`,
-      shortDescription: "הזמנות אונליין דרך לינק אחד מסודר.",
+      description: `כאן קובעים תור ל${input.businessName}. בוחרים שירות, תאריך ושעה והתור נשמר מיד.`,
+      shortDescription: "קביעת תור דרך לינק אחד ברור.",
       phone: input.phone,
       whatsapp: input.whatsapp || input.phone,
       address: input.address || "",
       timezone: "Asia/Jerusalem",
-      coverTitle: `הזמנת תור ל${input.businessName}`,
-      coverSubtitle: "שירותים, מחירים ושעות פנויות בלינק אחד",
+      coverTitle: `קביעת תור ל${input.businessName}`,
+      coverSubtitle: "בחרו שירות, תאריך ושעה פנויה בכמה לחיצות",
       coverTone: defaults.coverTone,
+      defaultLanguage: normalizeLanguage(input.defaultLanguage),
+      supportedLanguages: normalizeSupportedLanguages(input.supportedLanguages),
+      showLanguageSwitcher: input.showLanguageSwitcher ?? true,
       isActive: true,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -323,7 +486,7 @@ export async function createBusinessPage(input: {
       id: makeId("srv"),
       businessId,
       name: input.serviceName,
-      description: "שירות ראשון שנוצר בזמן פתיחת העמוד. אפשר לערוך אותו מלוח הניהול.",
+      description: "השירות הראשון בעמוד. אפשר לערוך שם, מחיר ומשך מתוך לוח הניהול.",
       price: input.servicePrice,
       durationMinutes: input.serviceDurationMinutes,
       isActive: true,
@@ -353,6 +516,75 @@ export async function createBusinessPage(input: {
     });
 
     return { business, service, availabilityRules };
+  });
+}
+
+export async function createSmartSetupBusinessPage(input: SmartSetupDraft) {
+  return updateStore((store) => {
+    if (store.businesses.some((business) => business.slug === input.slug)) {
+      throw new Error("This booking page link is already taken. Choose another link.");
+    }
+
+    const timestamp = new Date().toISOString();
+    const businessId = makeId("biz");
+    const business: Business = {
+      id: businessId,
+      slug: input.slug,
+      name: input.businessName,
+      businessIcon: input.businessIcon || categoryDefaults[input.category].icon,
+      profileImage: input.profileImage || "",
+      category: input.category,
+      description: input.description,
+      shortDescription: input.shortDescription,
+      phone: input.phone,
+      whatsapp: input.whatsapp || input.phone,
+      address: input.address,
+      timezone: "Asia/Jerusalem",
+      coverTitle: input.coverTitle,
+      coverSubtitle: input.coverSubtitle,
+      coverTone: input.coverTone,
+      defaultLanguage: normalizeLanguage(input.defaultLanguage),
+      supportedLanguages: normalizeSupportedLanguages(input.supportedLanguages),
+      showLanguageSwitcher: input.showLanguageSwitcher,
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    const services: Service[] = input.services.map((service) => ({
+      id: makeId("srv"),
+      businessId,
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      durationMinutes: service.durationMinutes,
+      isActive: service.isActive,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    }));
+
+    const availabilityRules: AvailabilityRule[] = input.availabilityRules.map((rule) => ({
+      id: makeId("av"),
+      businessId,
+      dayOfWeek: rule.dayOfWeek,
+      startTime: rule.startTime,
+      endTime: rule.endTime,
+      isActive: rule.isActive,
+    }));
+
+    store.businesses.unshift(business);
+    store.services.unshift(...services);
+    store.availabilityRules.push(...availabilityRules);
+    store.users.unshift({
+      id: makeId("user"),
+      name: input.ownerName,
+      email: `${input.slug}@bookeasy.local`,
+      role: "business_owner",
+      businessId,
+      isActive: true,
+    });
+
+    return { business, services, availabilityRules };
   });
 }
 

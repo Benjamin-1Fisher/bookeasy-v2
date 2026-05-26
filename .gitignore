@@ -30,9 +30,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 dev-server*.log
+dev-*.log
 
 # local verification artifacts
 /screenshots/
+/.codex-screenshots/
 
 # env files (can opt-in for committing if needed)
 .env*

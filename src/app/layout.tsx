@@ -4,12 +4,13 @@ import "@fontsource/heebo/500.css";
 import "@fontsource/heebo/600.css";
 import "@fontsource/heebo/700.css";
 import "@fontsource/heebo/800.css";
+import { LocaleProvider } from "@/i18n";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BookEasy | לינק הזמנות חכם לעסק קטן",
+  title: "BookEasy | Smart booking links for small service businesses",
   description:
-    "BookEasy מאפשר לעסק שלך להציג שירותים, מחירים וזמנים פנויים, והלקוחות מזמינים דרך לינק אחד.",
+    "Turn WhatsApp and Instagram booking chaos into one smart booking link with Hebrew and English support.",
 };
 
 export default function RootLayout({
@@ -19,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" dir="rtl" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

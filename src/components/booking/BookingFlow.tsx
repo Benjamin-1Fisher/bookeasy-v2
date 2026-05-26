@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, CheckCircle2, Clock3, MessageSquareText, UserRound } from "lucide-react";
+import { interpolate, useI18n } from "@/i18n";
 import { formatDate, formatDuration, formatPrice } from "@/lib/format";
 import type { Booking, Business, Service, Slot } from "@/lib/types";
 
@@ -27,6 +28,7 @@ function getToday() {
 }
 
 export function BookingFlow({ business, services }: BookingFlowProps) {
+  const { language, t } = useI18n();
   const activeServices = useMemo(() => services.filter((service) => service.isActive), [services]);
   const [selectedServiceId, setSelectedServiceId] = useState(activeServices[0]?.id ?? "");
   const [date, setDate] = useState(getToday());
@@ -39,6 +41,8 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
   const [booking, setBooking] = useState<Booking | null>(null);
 
   const selectedService = activeServices.find((service) => service.id === selectedServiceId) ?? activeServices[0];
+  const selectedTimeText = selectedSlot ? `${formatDate(selectedSlot.date, language)}, ${selectedSlot.startTime}` : t.booking.noTimeSelected;
+  const formReady = Boolean(form.customerName.trim() && form.customerPhone.trim());
   const step = booking ? 4 : selectedSlot ? 3 : selectedServiceId ? 2 : 1;
 
   useEffect(() => {
@@ -47,6 +51,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
     }
 
     let ignore = false;
+
     fetch(`/api/businesses/${business.id}/slots?serviceId=${selectedServiceId}&date=${date}`)
       .then((response) => response.json())
       .then((data: { slots?: Slot[]; error?: string }) => {
@@ -60,11 +65,12 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
           return;
         }
 
+        setError("");
         setSlots(data.slots ?? []);
       })
       .catch(() => {
         if (!ignore) {
-          setError("לא הצלחנו לטעון שעות פנויות כרגע");
+          setError(t.booking.slotsError);
         }
       })
       .finally(() => {
@@ -76,13 +82,13 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
     return () => {
       ignore = true;
     };
-  }, [business.id, selectedServiceId, date]);
+  }, [business.id, selectedServiceId, date, t.booking.slotsError]);
 
   async function submitBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!selectedService || !selectedSlot) {
-      setError("צריך לבחור שירות ושעה כדי להמשיך");
+      setError(t.booking.missingSelection);
       return;
     }
 
@@ -107,7 +113,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
     setSubmitting(false);
 
     if (!response.ok || !data.booking) {
-      setError(data.error ?? "לא הצלחנו לשמור את ההזמנה. נסה שוב בעוד רגע");
+      setError(data.error ?? t.booking.submitError);
       return;
     }
 
@@ -117,8 +123,8 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
   if (!selectedService) {
     return (
       <div className="rounded-[8px] border border-line bg-white p-6 text-center">
-        <p className="text-lg font-extrabold">אין שירותים פעילים כרגע</p>
-        <p className="mt-2 text-muted">כדאי ליצור קשר עם העסק כדי לבדוק זמינות.</p>
+        <p className="text-lg font-extrabold">{t.booking.noServicesTitle}</p>
+        <p className="mt-2 text-muted">{t.booking.noServicesText}</p>
       </div>
     );
   }
@@ -126,29 +132,42 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
   return (
     <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]" id="booking">
       <aside className="soft-card h-fit rounded-[8px] p-5">
-        <p className="text-sm font-bold text-primary">שלב {step} מתוך 4</p>
-        <h2 className="mt-2 text-2xl font-extrabold">בחירת תור</h2>
+        <span className="inline-flex rounded-full bg-[var(--primary-soft)] px-3 py-1 text-xs font-extrabold text-primary">
+          {t.booking.conciergeBadge}
+        </span>
+        <p className="mt-4 text-sm font-bold text-primary">{interpolate(t.booking.step, { current: step, total: 4 })}</p>
+        <h2 className="mt-2 text-2xl font-extrabold">{t.booking.conciergeTitle}</h2>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#e8f3ef]">
           <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(step / 4) * 100}%` }} />
         </div>
         <div className="mt-5 grid gap-2">
-          {[
-            ["1", "בחירת שירות", Boolean(selectedServiceId)],
-            ["2", "בחירת תאריך ושעה", Boolean(selectedSlot)],
-            ["3", "פרטי לקוח", Boolean(form.customerName && form.customerPhone)],
-            ["4", "אישור הזמנה", Boolean(booking)],
-          ].map(([number, label, done]) => (
-            <div key={String(label)} className="flex items-center gap-3 rounded-[8px] bg-[#f4f7f5] p-3">
-              <span
-                className={`grid size-8 place-items-center rounded-full text-sm font-extrabold ${
-                  done ? "bg-primary text-white" : "bg-white text-muted"
-                }`}
-              >
-                {done ? <Check size={16} aria-hidden="true" /> : number}
-              </span>
-              <span className="font-bold">{label}</span>
-            </div>
-          ))}
+          {t.booking.progress.map((label, index) => {
+            const done = [Boolean(selectedServiceId), Boolean(selectedSlot), formReady, Boolean(booking)][index];
+            return (
+              <div key={label} className="flex items-center gap-3 rounded-[8px] bg-[#f4f7f5] p-3">
+                <span
+                  className={`grid size-8 place-items-center rounded-full text-sm font-extrabold ${
+                    done ? "bg-primary text-white" : "bg-white text-muted"
+                  }`}
+                >
+                  {done ? <Check size={16} aria-hidden="true" /> : index + 1}
+                </span>
+                <span className="font-bold">{label}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-5 rounded-[8px] border border-line bg-white p-4">
+          <p className="text-sm font-extrabold text-primary">{t.booking.currentSelection}</p>
+          <div className="mt-3 grid gap-2 text-sm text-muted">
+            <p>
+              <span className="font-extrabold text-foreground">{t.booking.selectedService}:</span> {selectedService.name}
+            </p>
+            <p>
+              <span className="font-extrabold text-foreground">{t.booking.selectedTime}:</span>{" "}
+              <span className="inline-block">{selectedTimeText}</span>
+            </p>
+          </div>
         </div>
       </aside>
 
@@ -158,9 +177,11 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
         ) : (
           <>
             <section className="soft-card rounded-[8px] p-5">
-              <div className="flex items-center gap-2">
-                <MessageSquareText size={20} className="text-primary" aria-hidden="true" />
-                <h2 className="text-xl font-extrabold">1. בוחרים שירות</h2>
+              <div className="flex items-start gap-2">
+                <MessageSquareText size={20} className="mt-1 text-primary" aria-hidden="true" />
+                <div>
+                  <h2 className="text-xl font-extrabold">{t.booking.serviceQuestion}</h2>
+                </div>
               </div>
               <div className="mt-4 grid gap-3">
                 {activeServices.map((service) => (
@@ -170,23 +191,34 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
                     onClick={() => {
                       setSelectedSlot(null);
                       setError("");
-                      setLoadingSlots(true);
-                      setSelectedServiceId(service.id);
+                      if (selectedServiceId !== service.id) {
+                        setLoadingSlots(true);
+                        setSlots([]);
+                        setSelectedServiceId(service.id);
+                      }
                     }}
-                    className={`focus-ring rounded-[8px] border p-4 text-right transition ${
+                    aria-pressed={selectedServiceId === service.id}
+                    className={`focus-ring rounded-[8px] border p-4 text-start transition ${
                       selectedServiceId === service.id
                         ? "border-primary bg-[#e8f3ef] shadow-sm"
                         : "border-line bg-white hover:border-primary hover:bg-[#f8fbf9]"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-lg font-extrabold">{service.name}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-lg font-extrabold">{service.name}</p>
+                          {selectedServiceId === service.id ? (
+                            <span className="rounded-full bg-primary px-3 py-1 text-xs font-extrabold text-white">
+                              {t.booking.selectedLabel}
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="mt-1 leading-7 text-muted">{service.description}</p>
                       </div>
-                      <div className="text-left">
-                        <p className="font-extrabold text-primary">{formatPrice(service.price)}</p>
-                        <p className="mt-1 text-sm font-bold text-muted">{formatDuration(service.durationMinutes)}</p>
+                      <div className="text-start sm:text-end">
+                        <p className="font-extrabold text-primary">{formatPrice(service.price, language)}</p>
+                        <p className="mt-1 text-sm font-bold text-muted">{formatDuration(service.durationMinutes, language)}</p>
                       </div>
                     </div>
                   </button>
@@ -195,31 +227,37 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
             </section>
 
             <section className="soft-card rounded-[8px] p-5">
-              <div className="flex items-center gap-2">
-                <CalendarDays size={20} className="text-primary" aria-hidden="true" />
-                <h2 className="text-xl font-extrabold">2. בוחרים תאריך ושעה</h2>
+              <div className="flex items-start gap-2">
+                <CalendarDays size={20} className="mt-1 text-primary" aria-hidden="true" />
+                <div>
+                  <h2 className="text-xl font-extrabold">{t.booking.dateQuestion}</h2>
+                </div>
               </div>
               <label className="mt-4 grid max-w-xs gap-2 text-sm font-bold">
-                תאריך
+                {t.booking.dateLabel}
                 <input
                   type="date"
                   min={getToday()}
                   dir="ltr"
                   value={date}
                   onChange={(event) => {
+                    const nextDate = event.target.value;
                     setSelectedSlot(null);
                     setError("");
-                    setLoadingSlots(true);
-                    setDate(event.target.value);
+                    if (nextDate !== date) {
+                      setLoadingSlots(true);
+                      setSlots([]);
+                      setDate(nextDate);
+                    }
                   }}
-                  className="focus-ring ltr rounded-[8px] border border-line bg-white px-4 py-3 text-right text-base"
+                  className="focus-ring ltr rounded-[8px] border border-line bg-white px-4 py-3 text-start text-base"
                 />
               </label>
 
               <div className="mt-4">
                 <p className="mb-3 flex items-center gap-2 text-sm font-bold text-muted">
                   <Clock3 size={16} aria-hidden="true" />
-                  שעות פנויות עבור {formatDate(date)}
+                  {interpolate(t.booking.availableTimes, { date: formatDate(date, language) })}
                 </p>
                 {loadingSlots ? (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -249,54 +287,67 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
                   </div>
                 ) : (
                   <div className="rounded-[8px] border border-dashed border-line bg-white p-5 text-center text-muted">
-                    אין שעות פנויות בתאריך הזה. כדאי לבחור תאריך אחר.
+                    {t.booking.noSlots}
                   </div>
                 )}
+                {selectedSlot ? (
+                  <p className="mt-3 rounded-[8px] bg-[#e8f3ef] px-4 py-3 text-sm font-extrabold text-primary">
+                    {t.booking.selectedTime}: <span className="ltr inline-block">{selectedSlot.startTime}</span>
+                  </p>
+                ) : null}
               </div>
             </section>
 
             <form onSubmit={submitBooking} className="soft-card rounded-[8px] p-5">
-              <div className="flex items-center gap-2">
-                <UserRound size={20} className="text-primary" aria-hidden="true" />
-                <h2 className="text-xl font-extrabold">3. משאירים פרטים</h2>
+              <div className="flex items-start gap-2">
+                <UserRound size={20} className="mt-1 text-primary" aria-hidden="true" />
+                <div>
+                  <h2 className="text-xl font-extrabold">{t.booking.customerDetails}</h2>
+                </div>
               </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold">
-                  שם מלא
+                  {t.booking.nameLabel}
                   <input
                     required
                     value={form.customerName}
                     onChange={(event) => setForm((current) => ({ ...current, customerName: event.target.value }))}
                     className="focus-ring rounded-[8px] border border-line bg-white px-4 py-3 text-base"
-                    placeholder="איך נקרא לך?"
+                    placeholder={t.booking.namePlaceholder}
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-bold">
-                  מספר טלפון
+                  {t.booking.phoneLabel}
                   <input
                     required
                     dir="ltr"
                     value={form.customerPhone}
                     onChange={(event) => setForm((current) => ({ ...current, customerPhone: event.target.value }))}
-                    className="focus-ring ltr rounded-[8px] border border-line bg-white px-4 py-3 text-right text-base"
-                    placeholder="050-0000000"
+                    className="focus-ring ltr rounded-[8px] border border-line bg-white px-4 py-3 text-start text-base"
+                    placeholder={t.booking.phonePlaceholder}
                   />
                 </label>
               </div>
               <label className="mt-4 grid gap-2 text-sm font-bold">
-                הערות אופציונליות
+                {t.booking.notesLabel}
                 <textarea
                   value={form.notes}
                   onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
                   className="focus-ring min-h-24 rounded-[8px] border border-line bg-white px-4 py-3 text-base"
-                  placeholder="משהו שחשוב לדעת לפני שמגיעים?"
+                  placeholder={t.booking.notesPlaceholder}
                 />
               </label>
 
               {selectedSlot ? (
-                <div className="mt-4 rounded-[8px] bg-[#e8f3ef] p-4 text-sm font-bold text-primary">
-                  סיכום: {selectedService.name}, {formatDate(selectedSlot.date)}, בשעה{" "}
-                  <span className="ltr inline-block">{selectedSlot.startTime}</span>
+                <div className="mt-4 rounded-[8px] bg-[#e8f3ef] p-4 text-sm text-primary">
+                  <p className="font-extrabold">{t.booking.bookingSummary}</p>
+                  <p className="mt-2 font-bold">
+                    {interpolate(t.booking.summaryLine, {
+                      service: selectedService.name,
+                      date: formatDate(selectedSlot.date, language),
+                      time: selectedSlot.startTime,
+                    })}
+                  </p>
                 </div>
               ) : null}
 
@@ -306,7 +357,7 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
                 disabled={!selectedSlot || submitting}
                 className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white transition hover:bg-primary-strong disabled:opacity-60 sm:w-auto"
               >
-                {submitting ? "שומר הזמנה..." : "אישור הזמנה"}
+                {!selectedSlot ? t.booking.chooseTimeFirst : submitting ? t.booking.submitting : t.booking.submit}
                 <CheckCircle2 size={18} aria-hidden="true" />
               </button>
             </form>
@@ -318,28 +369,28 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
 }
 
 function Confirmation({ business, service, booking }: { business: Business; service: Service; booking: Booking }) {
+  const { language, t } = useI18n();
+
   return (
     <section className="soft-card rounded-[8px] p-6 text-center">
       <div className="mx-auto grid size-14 place-items-center rounded-full bg-[#e8f3ef] text-primary">
         <CheckCircle2 size={28} aria-hidden="true" />
       </div>
-      <h2 className="mt-5 text-3xl font-extrabold">ההזמנה נשלחה</h2>
-      <p className="mx-auto mt-3 max-w-lg leading-8 text-muted">
-        קיבלנו את הפרטים שלך. העסק יוכל לאשר את ההזמנה מתוך לוח הניהול.
-      </p>
-      <div className="mx-auto mt-6 grid max-w-lg gap-3 rounded-[8px] border border-line bg-white p-5 text-right">
+      <h2 className="mt-5 text-3xl font-extrabold">{t.booking.successTitle}</h2>
+      <p className="mx-auto mt-3 max-w-lg leading-8 text-muted">{t.booking.successText}</p>
+      <div className="mx-auto mt-6 grid max-w-lg gap-3 rounded-[8px] border border-line bg-white p-5 text-start">
         <p>
-          <span className="font-extrabold">עסק:</span> {business.name}
+          <span className="font-extrabold">{t.booking.business}:</span> {business.name}
         </p>
         <p>
-          <span className="font-extrabold">שירות:</span> {service.name}
+          <span className="font-extrabold">{t.booking.service}:</span> {service.name}
         </p>
         <p>
-          <span className="font-extrabold">מועד:</span> {formatDate(booking.date)}, שעה{" "}
+          <span className="font-extrabold">{t.booking.time}:</span> {formatDate(booking.date, language)},{" "}
           <span className="ltr inline-block">{booking.startTime}</span>
         </p>
         <p>
-          <span className="font-extrabold">שם:</span> {booking.customerName}
+          <span className="font-extrabold">{t.booking.name}:</span> {booking.customerName}
         </p>
       </div>
     </section>

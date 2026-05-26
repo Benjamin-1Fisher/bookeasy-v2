@@ -1,13 +1,28 @@
-import type { BookingStatus, DemoRequestStatus } from "@/lib/types";
+import type { BookingStatus, DemoRequestStatus, Language } from "@/lib/types";
 
-export const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
-export const bookingStatusLabels: Record<BookingStatus, string> = {
-  pending: "ממתין לאישור",
-  confirmed: "אושר",
-  cancelled: "בוטל",
-  completed: "הושלם",
+export const dayNamesByLanguage: Record<Language, string[]> = {
+  he: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
+  en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
 };
+
+export const dayNames = dayNamesByLanguage.he;
+
+export const bookingStatusLabelsByLanguage: Record<Language, Record<BookingStatus, string>> = {
+  he: {
+    pending: "ממתין לאישור",
+    confirmed: "אושר",
+    cancelled: "בוטל",
+    completed: "הושלם",
+  },
+  en: {
+    pending: "Pending",
+    confirmed: "Confirmed",
+    cancelled: "Cancelled",
+    completed: "Completed",
+  },
+};
+
+export const bookingStatusLabels = bookingStatusLabelsByLanguage.he;
 
 export const demoStatusLabels: Record<DemoRequestStatus, string> = {
   new: "חדש",
@@ -15,15 +30,26 @@ export const demoStatusLabels: Record<DemoRequestStatus, string> = {
   closed: "נסגר",
 };
 
-export function formatPrice(price: number) {
-  return new Intl.NumberFormat("he-IL", {
+export function formatPrice(price: number, language: Language = "he") {
+  return new Intl.NumberFormat(language === "he" ? "he-IL" : "en-IL", {
     style: "currency",
     currency: "ILS",
     maximumFractionDigits: 0,
   }).format(price);
 }
 
-export function formatDuration(minutes: number) {
+export function formatDuration(minutes: number, language: Language = "he") {
+  if (language === "en") {
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    const hourLabel = hours === 1 ? "hour" : "hours";
+    return rest ? `${hours} ${hourLabel} ${rest} min` : `${hours} ${hourLabel}`;
+  }
+
   if (minutes < 60) {
     return `${minutes} דקות`;
   }
@@ -38,8 +64,8 @@ export function formatDuration(minutes: number) {
   return `${hours} שעות ו-${rest} דקות`;
 }
 
-export function formatDate(date: string) {
-  return new Intl.DateTimeFormat("he-IL", {
+export function formatDate(date: string, language: Language = "he") {
+  return new Intl.DateTimeFormat(language === "he" ? "he-IL" : "en-IL", {
     weekday: "long",
     day: "numeric",
     month: "long",

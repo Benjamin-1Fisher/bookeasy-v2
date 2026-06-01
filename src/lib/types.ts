@@ -11,6 +11,7 @@ export type Business = {
   slug: string;
   name: string;
   businessIcon: string;
+  logoUrl?: string;
   category: BusinessCategory;
   description: string;
   shortDescription: string;
@@ -18,8 +19,10 @@ export type Business = {
   whatsapp: string;
   address: string;
   timezone: string;
+  bookingWindowDays: number;
   coverTitle: string;
   coverSubtitle: string;
+  coverImageUrl?: string;
   coverTone: "teal" | "rose" | "blue";
   isActive: boolean;
   createdAt: string;

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { jsonError } from "@/lib/responses";
 import { getSlotsForService } from "@/lib/store";
 
 export async function GET(request: Request, context: { params: Promise<{ businessId: string }> }) {
@@ -11,6 +12,10 @@ export async function GET(request: Request, context: { params: Promise<{ busines
     return NextResponse.json({ error: "צריך לבחור שירות ותאריך" }, { status: 400 });
   }
 
-  const slots = await getSlotsForService(businessId, serviceId, date);
-  return NextResponse.json({ slots });
+  try {
+    const slots = await getSlotsForService(businessId, serviceId, date);
+    return NextResponse.json({ slots });
+  } catch (error) {
+    return jsonError(error, 400);
+  }
 }

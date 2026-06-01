@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { getBookingWindowDays, isDateInBookingWindow } from "@/lib/booking-window";
 import { seedStore } from "@/lib/seed-data";
 import type {
   AvailabilityRule,
@@ -8,6 +9,7 @@ import type {
   BookeasyStore,
   Business,
   BusinessBundle,
+  BusinessCategory,
   DemoRequest,
   Service,
   Slot,
@@ -138,7 +140,11 @@ export async function getSlotsForService(businessId: string, serviceId: string, 
     return [];
   }
 
-  return createSlots(store, businessId, service, date);
+  if (!isDateInBookingWindow(date, business)) {
+    throw new Error(`אפשר לקבוע תור רק עד ${getBookingWindowDays(business)} ימים קדימה`);
+  }
+
+  return createSlots(store, businessId, service, date).filter((slot) => slot.available);
 }
 
 export function createSlots(store: BookeasyStore, businessId: string, service: Service, date: string): Slot[] {
@@ -227,6 +233,10 @@ export async function createBooking(input: {
       throw new Error("השירות שבחרת לא זמין כרגע");
     }
 
+    if (!isDateInBookingWindow(input.date, business)) {
+      throw new Error(`אפשר לקבוע תור רק עד ${getBookingWindowDays(business)} ימים קדימה`);
+    }
+
     const endTime = timeFromMinutes(minutesFromTime(input.startTime) + service.durationMinutes);
     const slots = createSlots(store, input.businessId, service, input.date);
     const slot = slots.find((item) => item.startTime === input.startTime);
@@ -246,7 +256,7 @@ export async function createBooking(input: {
       date: input.date,
       startTime: input.startTime,
       endTime,
-      status: "pending",
+      status: "confirmed",
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -267,6 +277,152 @@ export async function createDemoRequest(input: Omit<DemoRequest, "id" | "status"
 
     store.demoRequests.unshift(request);
     return request;
+  });
+}
+
+const categoryDefaults: Record<
+  BusinessCategory,
+  {
+    icon: string;
+    tone: Business["coverTone"];
+    coverTitle: string;
+    coverSubtitle: string;
+    serviceDescription: string;
+  }
+> = {
+  barber: {
+    icon: "scissors",
+    tone: "teal",
+    coverTitle: "תורים לתספורת ולזקן",
+    coverSubtitle: "שירותים, מחירים ושעות פנויות בלינק אחד",
+    serviceDescription: "שירות ראשון שהלקוחות יכולים להזמין כבר עכשיו.",
+  },
+  nails: {
+    icon: "sparkles",
+    tone: "rose",
+    coverTitle: "טיפולי יופי בזמן שנוח לך",
+    coverSubtitle: "בחירת שירות ושעה פנויה בכמה לחיצות",
+    serviceDescription: "שירות טיפוח ראשון שאפשר להזמין דרך הלינק.",
+  },
+  clinic: {
+    icon: "heart-pulse",
+    tone: "blue",
+    coverTitle: "זמני טיפול ופגישות ייעוץ",
+    coverSubtitle: "הלקוח בוחר שעה, והתור נכנס ללוח",
+    serviceDescription: "פגישה ראשונה שהלקוחות יכולים לקבוע אונליין.",
+  },
+  fitness: {
+    icon: "dumbbell",
+    tone: "blue",
+    coverTitle: "אימונים ופגישות בזמן שנוח לך",
+    coverSubtitle: "בחירת שירות ושעה פנויה בלי תיאומים ידניים",
+    serviceDescription: "מפגש ראשון שאפשר להזמין דרך הלינק.",
+  },
+  other: {
+    icon: "store",
+    tone: "teal",
+    coverTitle: "קביעת תור אונליין",
+    coverSubtitle: "שירותים, מחירים ושעות פנויות במקום אחד",
+    serviceDescription: "שירות ראשון שהלקוחות יכולים להזמין אונליין.",
+  },
+};
+
+function normalizeSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function getUniqueSlug(store: BookeasyStore, requestedSlug: string) {
+  const baseSlug = normalizeSlug(requestedSlug) || "business";
+  let slug = baseSlug;
+  let suffix = 2;
+
+  while (store.businesses.some((business) => business.slug === slug)) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
+}
+
+export async function createBusinessFromOnboarding(input: {
+  ownerName: string;
+  ownerEmail: string;
+  businessName: string;
+  category: BusinessCategory;
+  phone: string;
+  whatsapp?: string;
+  address?: string;
+  slug: string;
+  serviceName: string;
+  servicePrice: number;
+  serviceDurationMinutes: number;
+}) {
+  return updateStore((store) => {
+    const timestamp = new Date().toISOString();
+    const defaults = categoryDefaults[input.category];
+    const businessId = makeId("biz");
+    const serviceId = makeId("srv");
+    const slug = getUniqueSlug(store, input.slug);
+    const business: Business = {
+      id: businessId,
+      slug,
+      businessIcon: defaults.icon,
+      logoUrl: "",
+      name: input.businessName,
+      category: input.category,
+      description: `${input.businessName} מאפשר ללקוחות לבחור שירות, תאריך ושעה פנויה דרך לינק אחד ברור.`,
+      shortDescription: "דף הזמנות מהיר וברור ללקוחות.",
+      phone: input.phone,
+      whatsapp: input.whatsapp || input.phone,
+      address: input.address || "",
+      timezone: "Asia/Jerusalem",
+      bookingWindowDays: 60,
+      coverTitle: defaults.coverTitle,
+      coverSubtitle: defaults.coverSubtitle,
+      coverImageUrl: "",
+      coverTone: defaults.tone,
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    const service: Service = {
+      id: serviceId,
+      businessId,
+      name: input.serviceName,
+      description: defaults.serviceDescription,
+      price: input.servicePrice,
+      durationMinutes: input.serviceDurationMinutes,
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    const availabilityRules: AvailabilityRule[] = [0, 1, 2, 3, 4].map((dayOfWeek) => ({
+      id: makeId("av"),
+      businessId,
+      dayOfWeek,
+      startTime: dayOfWeek === 4 ? "10:00" : "09:00",
+      endTime: dayOfWeek === 4 ? "15:00" : "18:00",
+      isActive: true,
+    }));
+
+    store.businesses.unshift(business);
+    store.services.unshift(service);
+    store.availabilityRules.push(...availabilityRules);
+    store.users.unshift({
+      id: makeId("usr"),
+      name: input.ownerName,
+      email: input.ownerEmail,
+      role: "business_owner",
+      businessId,
+      isActive: true,
+    });
+
+    return { business, service };
   });
 }
 
@@ -386,12 +542,11 @@ export async function getAdminSummary(businessId = "biz_barber") {
     services,
     bookings,
     availabilityRules: store.availabilityRules.filter((rule) => rule.businessId === business.id),
-    demoRequests: store.demoRequests,
     cards: {
       totalBookings: bookings.length,
       upcomingBookings: activeBookings.filter((booking) => booking.date >= today).length,
       popularService: popular,
-      newDemoRequests: store.demoRequests.filter((request) => request.status === "new").length,
+      publicDemoPages: store.businesses.filter((item) => item.isActive).length,
     },
   };
 }

@@ -17,18 +17,22 @@ import {
   Settings,
   ToggleLeft,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { BusinessIcon, businessIconOptions } from "@/components/ui/BusinessIcon";
-import { bookingStatusLabels, dayNames, formatDuration, formatPrice } from "@/lib/format";
+import { bookingStatusLabels, dayNames, formatDuration, formatPrice, getBusinessToneClasses } from "@/lib/format";
 import { launchPlan } from "@/lib/pricing";
-import type { AvailabilityRule, Booking, BookingStatus, Business, DemoRequest, Service } from "@/lib/types";
+import type { AvailabilityRule, Booking, BookingStatus, Business, Service } from "@/lib/types";
+
+const scheduleStatusOptions: BookingStatus[] = ["confirmed", "completed", "cancelled"];
+const maxProfileImageSize = 1_500_000;
 
 type SummaryCards = {
   totalBookings: number;
   upcomingBookings: number;
   popularService: string;
-  newDemoRequests: number;
+  publicDemoPages: number;
 };
 
 type DashboardInitialData = {
@@ -37,7 +41,6 @@ type DashboardInitialData = {
   services: Service[];
   bookings: Booking[];
   availabilityRules: AvailabilityRule[];
-  demoRequests: DemoRequest[];
   cards: SummaryCards;
 };
 
@@ -86,7 +89,6 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
   const [services, setServices] = useState(initialData.services);
   const [bookings, setBookings] = useState(initialData.bookings);
   const [availabilityRules, setAvailabilityRules] = useState(initialData.availabilityRules);
-  const [demoRequests] = useState(initialData.demoRequests);
   const [cards, setCards] = useState(initialData.cards);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -121,23 +123,23 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b border-line bg-white">
-        <div className="container-shell flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <span className="icon-tile size-12">
+        <div className="container-shell flex flex-col gap-4 py-4 sm:py-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <span className="icon-tile size-11 shrink-0 sm:size-12">
               <BusinessIcon value={business.businessIcon} className="size-6" />
             </span>
             <div>
               <p className="text-sm font-bold text-primary">לוח ניהול</p>
-              <h1 className="text-3xl font-extrabold text-foreground">{business.name}</h1>
+              <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">{business.name}</h1>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
             <select
               value={business.id}
               onChange={(event) => {
                 window.location.href = `/dashboard?businessId=${event.target.value}`;
               }}
-              className="focus-ring min-h-11 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-bold text-foreground"
+              className="focus-ring min-h-11 w-full rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-bold text-foreground sm:w-auto"
               aria-label="בחירת עסק לעריכה"
             >
               {initialData.businesses.map((item) => (
@@ -150,7 +152,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
             <a
               href={`/b/${business.slug}`}
               target="_blank"
-              className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-bold text-white"
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-bold text-white"
             >
               <Eye size={17} aria-hidden="true" />
               תצוגה מקדימה
@@ -159,9 +161,9 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
         </div>
       </header>
 
-      <div className="container-shell grid gap-6 py-6 lg:grid-cols-[240px_1fr]">
-        <aside className="h-fit rounded-[8px] border border-line bg-white p-2 lg:sticky lg:top-4">
-          <nav className="grid gap-1">
+      <div className="container-shell grid gap-4 py-4 sm:gap-6 sm:py-6 lg:grid-cols-[240px_1fr]">
+        <aside className="h-fit overflow-x-auto rounded-[8px] border border-line bg-white p-2 [scrollbar-width:none] lg:sticky lg:top-4 lg:overflow-visible">
+          <nav className="flex min-w-max gap-1 lg:grid lg:min-w-0">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -169,7 +171,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`focus-ring flex min-h-11 items-center gap-3 rounded-[8px] px-3 py-2 text-right font-bold transition ${
+                  className={`focus-ring flex min-h-11 shrink-0 items-center gap-2 rounded-[8px] px-3 py-2 text-right text-sm font-bold transition sm:gap-3 sm:text-base ${
                     activeTab === tab.id ? "bg-[#e8f3ef] text-primary" : "text-muted hover:bg-[#f4f7f5] hover:text-foreground"
                   }`}
                 >
@@ -191,7 +193,6 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
               todayBookings={todayBookings}
               upcomingBookings={upcomingBookings}
               services={services}
-              demoRequests={demoRequests}
               business={business}
               bookingLink={bookingLink}
             />
@@ -233,7 +234,8 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
 
           {activeTab === "availability" ? (
             <AvailabilityTab
-              businessId={business.id}
+              business={business}
+              setBusiness={setBusiness}
               rules={availabilityRules}
               setRules={setAvailabilityRules}
               refreshSummary={refreshSummary}
@@ -262,7 +264,6 @@ function OverviewTab({
   todayBookings,
   upcomingBookings,
   services,
-  demoRequests,
   business,
   bookingLink,
 }: {
@@ -270,7 +271,6 @@ function OverviewTab({
   todayBookings: Booking[];
   upcomingBookings: Booking[];
   services: Service[];
-  demoRequests: DemoRequest[];
   business: Business;
   bookingLink: string;
 }) {
@@ -283,7 +283,7 @@ function OverviewTab({
           ["סך כל ההזמנות", cards.totalBookings],
           ["הזמנות קרובות", cards.upcomingBookings],
           ["השירות הכי פופולרי", cards.popularService],
-          ["בקשות דמו חדשות", cards.newDemoRequests],
+          ["דפי דמו פתוחים", cards.publicDemoPages],
         ].map(([label, value]) => (
           <article key={label} className="soft-card rounded-[8px] p-5">
             <p className="text-sm font-bold text-muted">{label}</p>
@@ -311,22 +311,28 @@ function OverviewTab({
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <Panel title="בקשות דמו חדשות" icon={ClipboardList}>
-          {demoRequests.length ? (
-            <div className="grid gap-3">
-              {demoRequests.slice(0, 3).map((request) => (
-                <div key={request.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
-                  <p className="font-extrabold">{request.ownerName}</p>
-                  <p className="mt-1 text-sm text-muted">
-                    {request.businessType} · <span className="ltr inline-block">{request.phone}</span>
-                  </p>
-                  {request.message ? <p className="mt-2 text-sm leading-6 text-muted">{request.message}</p> : null}
-                </div>
-              ))}
+        <Panel title="גישה עצמאית לדמו" icon={ExternalLink}>
+          <div className="grid gap-4">
+            <p className="leading-7 text-muted">
+              אפשר לפתוח את דף ההזמנות ואת לוח הניהול בלי לשלוח פרטים. זה המקום לבדוק את החוויה כמו בעל עסק וכמו לקוח.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <a
+                className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-2 font-bold text-white"
+                href={`/b/${business.slug}`}
+                target="_blank"
+              >
+                פתח דף הזמנות
+                <ExternalLink size={16} aria-hidden="true" />
+              </a>
+              <Link
+                className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] border border-line bg-white px-4 py-2 font-bold text-foreground"
+                href="/#demo-access"
+              >
+                כל הדמוים
+              </Link>
             </div>
-          ) : (
-            <EmptyState title="אין בקשות דמו" text="הטופס בדף הנחיתה יזין לכאן בקשות חדשות." />
-          )}
+          </div>
         </Panel>
 
         <Panel title="תצוגה מקדימה של דף ההזמנות" icon={Eye}>
@@ -368,7 +374,7 @@ function BookingsTab({
   });
 
   return (
-    <Panel title="ניהול הזמנות" icon={ClipboardList}>
+    <Panel title="לוח תורים" icon={ClipboardList}>
       <div className="mb-4 flex flex-wrap gap-2">
         {[
           ["upcoming", "קרובות"],
@@ -397,7 +403,7 @@ function BookingsTab({
                 <th className="border-b border-line px-3 py-3">טלפון</th>
                 <th className="border-b border-line px-3 py-3">שירות</th>
                 <th className="border-b border-line px-3 py-3">תאריך ושעה</th>
-                <th className="border-b border-line px-3 py-3">סטטוס</th>
+                <th className="border-b border-line px-3 py-3">מצב</th>
               </tr>
             </thead>
             <tbody>
@@ -413,13 +419,13 @@ function BookingsTab({
                     </td>
                     <td className="border-b border-line px-3 py-3">
                       <select
-                        value={booking.status}
+                        value={booking.status === "pending" ? "confirmed" : booking.status}
                         onChange={(event) => onStatusChange(booking.id, event.target.value as BookingStatus)}
                         className="focus-ring rounded-[8px] border border-line bg-white px-3 py-2 font-bold"
                       >
-                        {Object.entries(bookingStatusLabels).map(([value, label]) => (
+                        {scheduleStatusOptions.map((value) => (
                           <option key={value} value={value}>
-                            {label}
+                            {bookingStatusLabels[value]}
                           </option>
                         ))}
                       </select>
@@ -640,20 +646,23 @@ function ServicesTab({
 }
 
 function AvailabilityTab({
-  businessId,
+  business,
+  setBusiness,
   rules,
   setRules,
   refreshSummary,
   notify,
   setError,
 }: {
-  businessId: string;
+  business: Business;
+  setBusiness: (business: Business) => void;
   rules: AvailabilityRule[];
   setRules: (rules: AvailabilityRule[]) => void;
   refreshSummary: () => Promise<void>;
   notify: (text: string) => void;
   setError: (text: string) => void;
 }) {
+  const bookingWindowDays = business.bookingWindowDays ?? 60;
   const normalizedRules = useMemo(
     () =>
       dayNames.map((_, dayOfWeek) => {
@@ -661,7 +670,7 @@ function AvailabilityTab({
         return (
           existing ?? {
             id: `draft_${dayOfWeek}`,
-            businessId,
+            businessId: business.id,
             dayOfWeek,
             startTime: "09:00",
             endTime: "17:00",
@@ -669,14 +678,14 @@ function AvailabilityTab({
           }
         );
       }),
-    [businessId, rules],
+    [business.id, rules],
   );
 
   async function save() {
     const response = await fetch("/api/admin/availability", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ businessId, rules: normalizedRules }),
+      body: JSON.stringify({ businessId: business.id, rules: normalizedRules }),
     });
     const data = (await response.json()) as { error?: string };
 
@@ -693,49 +702,114 @@ function AvailabilityTab({
     setRules(normalizedRules.map((rule) => (rule.dayOfWeek === dayOfWeek ? { ...rule, ...patch } : rule)));
   }
 
+  async function saveBookingWindow() {
+    const response = await fetch("/api/admin/business", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId: business.id, bookingWindowDays }),
+    });
+    const data = (await response.json()) as { business?: Business; error?: string };
+
+    if (!response.ok || !data.business) {
+      setError(data.error ?? "לא הצלחנו לשמור את טווח ההזמנות");
+      return;
+    }
+
+    setBusiness(data.business);
+    await refreshSummary();
+    notify("טווח ההזמנות נשמר");
+  }
+
   return (
-    <Panel title="ניהול זמינות" icon={CalendarDays}>
-      <p className="mb-5 leading-7 text-muted">
-        בחרו ימי עבודה ושעות עבודה. המערכת לא תאפשר שתי הזמנות חופפות באותה שעה.
-      </p>
-      <div className="grid gap-3">
-        {normalizedRules.map((rule) => (
-          <div key={rule.dayOfWeek} className="grid gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 sm:grid-cols-[130px_1fr_1fr] sm:items-center">
-            <label className="flex items-center gap-3 font-extrabold">
+    <div className="grid gap-5">
+      <Panel title="טווח הזמנות" icon={CalendarClock}>
+        <p className="mb-4 leading-7 text-muted">
+          קבעו עד כמה ימים קדימה לקוחות יוכלו לבחור תור בלוח השנה.
+        </p>
+        <div className="grid gap-4 rounded-[8px] border border-line bg-[#f4f7f5] p-4 lg:grid-cols-[1fr_auto] lg:items-end">
+          <Field label="פתיחת תורים קדימה">
+            <div className="flex flex-wrap items-center gap-2">
               <input
-                type="checkbox"
-                checked={rule.isActive}
-                onChange={(event) => updateRule(rule.dayOfWeek, { isActive: event.target.checked })}
-                className="size-5 accent-[var(--primary)]"
+                type="number"
+                min={1}
+                max={365}
+                value={bookingWindowDays}
+                onChange={(event) =>
+                  setBusiness({ ...business, bookingWindowDays: Math.min(365, Math.max(1, Number(event.target.value) || 1)) })
+                }
+                className="focus-ring ltr w-28 rounded-[8px] border border-line bg-white px-3 py-3 text-center text-base font-extrabold"
               />
-              יום {dayNames[rule.dayOfWeek]}
-            </label>
-            <Field label="שעת התחלה">
-              <input
-                type="time"
-                dir="ltr"
-                value={rule.startTime}
-                onChange={(event) => updateRule(rule.dayOfWeek, { startTime: event.target.value })}
-                className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-right"
-              />
-            </Field>
-            <Field label="שעת סיום">
-              <input
-                type="time"
-                dir="ltr"
-                value={rule.endTime}
-                onChange={(event) => updateRule(rule.dayOfWeek, { endTime: event.target.value })}
-                className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-right"
-              />
-            </Field>
+              <span className="font-bold text-muted">ימים קדימה</span>
+            </div>
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            {[14, 30, 60, 90].map((days) => (
+              <button
+                key={days}
+                type="button"
+                onClick={() => setBusiness({ ...business, bookingWindowDays: days })}
+                className={`focus-ring min-h-10 rounded-[8px] border px-3 py-2 text-sm font-extrabold ${
+                  bookingWindowDays === days ? "border-primary bg-primary text-white" : "border-line bg-white text-foreground"
+                }`}
+              >
+                {days === 60 ? "חודשיים" : `${days} ימים`}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={saveBookingWindow}
+              className="focus-ring inline-flex min-h-10 items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-extrabold text-white"
+            >
+              <Save size={16} aria-hidden="true" />
+              שמור טווח
+            </button>
           </div>
-        ))}
-      </div>
-      <button onClick={save} className="focus-ring mt-5 inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white">
-        <Save size={18} aria-hidden="true" />
-        שמור זמינות
-      </button>
-    </Panel>
+        </div>
+      </Panel>
+
+      <Panel title="ניהול זמינות" icon={CalendarDays}>
+        <p className="mb-5 leading-7 text-muted">
+          בחרו ימי עבודה ושעות עבודה. המערכת לא תאפשר שתי הזמנות חופפות באותה שעה.
+        </p>
+        <div className="grid gap-3">
+          {normalizedRules.map((rule) => (
+            <div key={rule.dayOfWeek} className="grid gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 sm:grid-cols-[130px_1fr_1fr] sm:items-center">
+              <label className="flex items-center gap-3 font-extrabold">
+                <input
+                  type="checkbox"
+                  checked={rule.isActive}
+                  onChange={(event) => updateRule(rule.dayOfWeek, { isActive: event.target.checked })}
+                  className="size-5 accent-[var(--primary)]"
+                />
+                יום {dayNames[rule.dayOfWeek]}
+              </label>
+              <Field label="שעת התחלה">
+                <input
+                  type="time"
+                  dir="ltr"
+                  value={rule.startTime}
+                  onChange={(event) => updateRule(rule.dayOfWeek, { startTime: event.target.value })}
+                  className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-right"
+                />
+              </Field>
+              <Field label="שעת סיום">
+                <input
+                  type="time"
+                  dir="ltr"
+                  value={rule.endTime}
+                  onChange={(event) => updateRule(rule.dayOfWeek, { endTime: event.target.value })}
+                  className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-right"
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+        <button onClick={save} className="focus-ring mt-5 inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white">
+          <Save size={18} aria-hidden="true" />
+          שמור זמינות
+        </button>
+      </Panel>
+    </div>
   );
 }
 
@@ -752,6 +826,43 @@ function ProfileTab({
   notify: (text: string) => void;
   setError: (text: string) => void;
 }) {
+  const logoImage = business.logoUrl?.trim();
+  const coverImage = business.coverImageUrl?.trim();
+  const hasUploadedLogo = logoImage?.startsWith("data:image/");
+  const hasUploadedCover = coverImage?.startsWith("data:image/");
+  const logoInputValue = hasUploadedLogo ? "" : (business.logoUrl ?? "");
+  const coverInputValue = hasUploadedCover ? "" : (business.coverImageUrl ?? "");
+
+  function chooseImage(field: "logoUrl" | "coverImageUrl", file?: File) {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("אפשר לבחור רק קובץ תמונה");
+      return;
+    }
+
+    if (file.size > maxProfileImageSize) {
+      setError("קובץ התמונה גדול מדי. כדאי לבחור תמונה עד 1.5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+
+      if (!result) {
+        setError("לא הצלחנו לקרוא את קובץ התמונה");
+        return;
+      }
+
+      setBusiness({ ...business, [field]: result });
+    };
+    reader.onerror = () => setError("לא הצלחנו לקרוא את קובץ התמונה");
+    reader.readAsDataURL(file);
+  }
+
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const response = await fetch("/api/admin/business", {
@@ -777,12 +888,15 @@ function ProfileTab({
           <div className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
-                <span className="icon-tile size-16 bg-white">
-                  <BusinessIcon value={business.businessIcon} className="size-8" />
+                <span
+                  className={`icon-tile size-16 overflow-hidden bg-white ${logoImage ? "bg-cover bg-center" : ""}`}
+                  style={logoImage ? { backgroundImage: `url("${logoImage.replaceAll("\"", "%22")}")` } : undefined}
+                >
+                  {logoImage ? null : <BusinessIcon value={business.businessIcon} className="size-8" />}
                 </span>
                 <div>
-                  <p className="font-extrabold">אייקון העסק</p>
-                  <p className="text-sm text-muted">האייקון מופיע בראש דף ההזמנות של העסק.</p>
+                  <p className="font-extrabold">לוגו ואייקון העסק</p>
+                  <p className="text-sm text-muted">אם אין לוגו, יוצג האייקון שנבחר.</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -800,6 +914,53 @@ function ProfileTab({
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr]">
+            <MediaField
+              id={`logo-upload-${business.id}`}
+              label="לוגו העסק"
+              value={logoInputValue}
+              placeholder={hasUploadedLogo ? "נבחר קובץ תמונה" : "https://example.com/logo.png"}
+              uploadLabel="העלאת לוגו"
+              removeLabel="הסרת לוגו"
+              hasImage={Boolean(logoImage)}
+              onUrlChange={(value) => setBusiness({ ...business, logoUrl: value })}
+              onFileChange={(file) => chooseImage("logoUrl", file)}
+              onRemove={() => setBusiness({ ...business, logoUrl: "" })}
+            />
+            <MediaField
+              id={`cover-upload-${business.id}`}
+              label="תמונת רקע לעמוד"
+              value={coverInputValue}
+              placeholder={hasUploadedCover ? "נבחר קובץ תמונה" : "https://example.com/cover.jpg"}
+              uploadLabel="העלאת תמונת רקע"
+              removeLabel="הסרת תמונת רקע"
+              hasImage={Boolean(coverImage)}
+              onUrlChange={(value) => setBusiness({ ...business, coverImageUrl: value })}
+              onFileChange={(file) => chooseImage("coverImageUrl", file)}
+              onRemove={() => setBusiness({ ...business, coverImageUrl: "" })}
+            />
+          </div>
+          <div
+            className={`min-h-40 rounded-[8px] border border-line bg-gradient-to-br ${getBusinessToneClasses(
+              business.coverTone,
+            )} bg-cover bg-center p-4 text-white`}
+            style={coverImage ? { backgroundImage: `linear-gradient(135deg, rgba(13, 48, 50, 0.78), rgba(11, 111, 100, 0.48)), url("${coverImage.replaceAll("\"", "%22")}")` } : undefined}
+          >
+            <div className="flex h-full min-h-32 items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-white/75">{business.coverSubtitle}</p>
+                <p className="mt-2 text-2xl font-extrabold">{business.name}</p>
+              </div>
+              <span
+                className={`grid size-14 shrink-0 place-items-center overflow-hidden rounded-[8px] bg-white text-primary shadow-sm ${
+                  logoImage ? "bg-cover bg-center" : ""
+                }`}
+                style={logoImage ? { backgroundImage: `url("${logoImage.replaceAll("\"", "%22")}")` } : undefined}
+              >
+                {logoImage ? null : <BusinessIcon value={business.businessIcon} className="size-7" />}
+              </span>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -963,10 +1124,10 @@ function LaunchPriceNotice() {
           </div>
         </div>
         <Link
-          href="/#demo-form"
+          href="/#demo-access"
           className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] bg-white px-4 py-2 text-sm font-bold text-foreground"
         >
-          שמור מחיר השקה
+          פתח דמו עצמאי
         </Link>
       </div>
     </section>
@@ -991,6 +1152,79 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {label}
       {children}
     </label>
+  );
+}
+
+function MediaField({
+  id,
+  label,
+  value,
+  placeholder,
+  uploadLabel,
+  removeLabel,
+  hasImage,
+  onUrlChange,
+  onFileChange,
+  onRemove,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  placeholder: string;
+  uploadLabel: string;
+  removeLabel: string;
+  hasImage: boolean;
+  onUrlChange: (value: string) => void;
+  onFileChange: (file?: File) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="grid gap-2 text-sm font-bold text-foreground">
+      <label htmlFor={`${id}-url`}>{label}</label>
+      <input
+        id={`${id}-url`}
+        dir="ltr"
+        inputMode="url"
+        value={value}
+        onChange={(event) => onUrlChange(event.target.value)}
+        className="focus-ring ltr rounded-[8px] border border-line px-3 py-3 text-right"
+        placeholder={placeholder}
+      />
+      <div className="flex flex-wrap gap-2">
+        <input
+          id={id}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          onChange={(event) => onFileChange(event.target.files?.[0])}
+          className="sr-only"
+        />
+        <label
+          htmlFor={id}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              event.currentTarget.click();
+            }
+          }}
+          className="focus-ring inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-extrabold text-foreground"
+        >
+          <Upload size={16} aria-hidden="true" />
+          {uploadLabel}
+        </label>
+        {hasImage ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="focus-ring inline-flex min-h-10 items-center gap-2 rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-extrabold text-muted"
+          >
+            <Trash2 size={16} aria-hidden="true" />
+            {removeLabel}
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

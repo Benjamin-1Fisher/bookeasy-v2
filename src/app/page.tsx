@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowLeft,
-  BadgeDollarSign,
   CalendarCheck,
   CheckCircle2,
   Clock3,
@@ -9,13 +8,13 @@ import {
   LayoutDashboard,
   Link2,
   MessageCircle,
-  MousePointerClick,
   Palette,
   Sparkles,
   Smartphone,
   WandSparkles,
 } from "lucide-react";
-import { DemoRequestForm } from "@/components/landing/DemoRequestForm";
+import { SelfServeDemoPanel } from "@/components/landing/SelfServeDemoPanel";
+import { BookEasyMark } from "@/components/ui/BookEasyMark";
 import { BusinessIcon } from "@/components/ui/BusinessIcon";
 import { formatPrice } from "@/lib/format";
 import { launchPlan } from "@/lib/pricing";
@@ -47,7 +46,7 @@ const steps = [
   { title: "מגדירים את העסק", text: "שם, אייקון, תיאור, שירותים, מחירים וזמינות.", Icon: WandSparkles },
   { title: "מקבלים לינק", text: "שמים בביו, שולחים בוואטסאפ או מוסיפים לפרופיל העסק.", Icon: Link2 },
   { title: "הלקוח בוחר לבד", text: "שירות, תאריך, שעה ופרטים אישיים במובייל.", Icon: Smartphone },
-  { title: "הכול נכנס מסודר", text: "ההזמנה מופיעה בלוח הניהול עם סטטוס ברור.", Icon: LayoutDashboard },
+  { title: "הכול נכנס ללוח", text: "התור מופיע מיד בלוח הניהול של העסק.", Icon: LayoutDashboard },
 ];
 
 const businessExamples = [
@@ -62,7 +61,11 @@ const businessExamples = [
 const faq = [
   {
     question: "מה זה BookEasy?",
-    answer: "לינק הזמנות חכם שמאפשר ללקוחות לבחור שירות, שעה ולשלוח בקשה מסודרת לעסק.",
+    answer: "לינק הזמנות חכם שמאפשר ללקוחות לבחור שירות ושעה, והתור נכנס ללוח של העסק.",
+  },
+  {
+    question: "צריך להשאיר פרטים כדי לראות דמו?",
+    answer: "לא. דפי הדמו ולוח הניהול פתוחים לצפייה עצמאית, בלי טופס ובלי שיחת מכירה לפני.",
   },
   {
     question: "זה מחליף את הוואטסאפ שלי?",
@@ -86,10 +89,10 @@ export default function Home() {
   return (
     <main>
       <section className="elegant-gradient relative overflow-hidden">
-        <nav className="container-shell flex items-center justify-between py-5">
+        <nav className="container-shell flex items-center justify-between gap-3 py-4 sm:py-5">
           <Link href="/" className="focus-ring flex items-center gap-2 rounded-[8px] font-extrabold text-foreground">
             <span className="grid size-9 place-items-center rounded-[8px] bg-primary text-white">
-              <Sparkles size={18} aria-hidden="true" />
+              <BookEasyMark size={18} aria-hidden={true} />
             </span>
             BookEasy
           </Link>
@@ -107,44 +110,44 @@ export default function Home() {
               שאלות
             </a>
           </div>
-          <a
-            href="#demo-form"
-            className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm"
+          <Link
+            href="/start"
+            className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-bold text-white shadow-sm sm:px-4"
           >
-            קבל דמו
+            התחל עכשיו
             <ArrowLeft size={16} aria-hidden="true" />
-          </a>
+          </Link>
         </nav>
 
-        <div className="container-shell grid min-h-[calc(100vh-80px)] items-center gap-10 py-10 lg:grid-cols-[1fr_0.92fr] lg:py-14">
+        <div className="container-shell grid items-center gap-7 py-6 sm:gap-10 sm:py-10 lg:min-h-[calc(100vh-80px)] lg:grid-cols-[1fr_0.92fr] lg:py-14">
           <div>
-            <div className="gold-chip mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold">
-              <BadgeDollarSign size={16} aria-hidden="true" />
-              מחיר השקה: {launchPlan.priceLabel} {launchPlan.periodLabel}, נשמר ל-5 שנים
+            <div className="gold-chip mb-4 inline-flex max-w-full items-center gap-2 rounded-full px-4 py-2 text-right text-xs font-extrabold sm:mb-5 sm:text-sm">
+              <Sparkles size={16} aria-hidden="true" />
+              מצטרפים עכשיו ושומרים מחיר השקה ל-5 שנים
             </div>
-            <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-normal text-foreground sm:text-5xl">
+            <h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-normal text-foreground sm:text-5xl">
               תן ללקוחות להזמין לבד
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-muted sm:text-xl">
+            <p className="mt-4 max-w-2xl text-base leading-7 text-muted sm:mt-5 sm:text-xl sm:leading-8">
               BookEasy מאפשר לעסק שלך להציג שירותים, מחירים וזמנים פנויים, והלקוחות מזמינים דרך לינק אחד.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="#demo-form"
-                className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-[8px] bg-primary px-6 py-4 text-base font-extrabold text-white shadow-sm transition hover:bg-primary-strong"
-              >
-                קבל דמו לעסק שלי
-                <ArrowLeft size={18} aria-hidden="true" />
-              </a>
+            <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <Link
-                href="/b/nails-demo"
-                className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-[8px] border border-line bg-white px-6 py-4 text-base font-extrabold text-foreground transition hover:border-primary"
+                href="/start"
+                className="focus-ring inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-6 py-4 text-base font-extrabold text-white shadow-sm transition hover:bg-primary-strong sm:w-auto"
               >
-                צפה בדמו
-                <MousePointerClick size={18} aria-hidden="true" />
+                צור עמוד
+                <ArrowLeft size={18} aria-hidden="true" />
+              </Link>
+              <Link
+                href="/dashboard"
+                className="focus-ring inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-[8px] border border-line bg-white px-6 py-4 text-base font-extrabold text-foreground transition hover:border-primary sm:w-auto"
+              >
+                פתח לוח ניהול
+                <LayoutDashboard size={18} aria-hidden="true" />
               </Link>
             </div>
-            <div className="mt-8 grid gap-3 text-sm font-bold text-foreground sm:grid-cols-3">
+            <div className="mt-6 grid gap-3 text-sm font-bold text-foreground sm:mt-8 sm:grid-cols-3">
               {["RTL מלא", "מותאם למובייל", "עריכת עמוד עסק"].map((item) => (
                 <span key={item} className="flex items-center gap-2">
                   <CheckCircle2 size={18} className="text-primary" aria-hidden="true" />
@@ -158,57 +161,61 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-y border-line bg-white py-12">
+      <section className="border-y border-line bg-white py-8 sm:py-12">
         <div className="container-shell grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {benefits.map(({ title, text, Icon }) => (
-            <article key={title} className="quiet-card rounded-[8px] p-5">
-              <span className="icon-tile size-11">
+            <article key={title} className="quiet-card flex gap-3 rounded-[8px] p-4 sm:block sm:p-5">
+              <span className="icon-tile size-10 shrink-0 sm:size-11">
                 <Icon size={21} aria-hidden="true" />
               </span>
-              <h2 className="mt-4 text-xl font-extrabold">{title}</h2>
-              <p className="mt-2 leading-7 text-muted">{text}</p>
+              <div>
+                <h2 className="text-lg font-extrabold sm:mt-4 sm:text-xl">{title}</h2>
+                <p className="mt-1 text-sm leading-6 text-muted sm:mt-2 sm:text-base sm:leading-7">{text}</p>
+              </div>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="container-shell py-16" id="how">
+      <section className="container-shell py-10 sm:py-16" id="how">
         <div className="max-w-2xl">
           <p className="text-sm font-extrabold text-primary">איך זה עובד</p>
-          <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">לינק אחד במקום שרשור הודעות</h2>
+          <h2 className="mt-2 text-2xl font-extrabold text-foreground sm:text-4xl">לינק אחד במקום שרשור הודעות</h2>
         </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:mt-8 md:grid-cols-4">
           {steps.map(({ title, text, Icon }, index) => (
-            <article key={title} className="soft-card rounded-[8px] p-5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="icon-tile size-11">
+            <article key={title} className="soft-card flex gap-3 rounded-[8px] p-4 sm:block sm:p-5">
+              <div className="flex shrink-0 flex-col items-center gap-2 sm:flex-row sm:justify-between">
+                <span className="icon-tile size-10 sm:size-11">
                   <Icon size={21} aria-hidden="true" />
                 </span>
                 <span className="text-sm font-extrabold text-accent">0{index + 1}</span>
               </div>
-              <h3 className="mt-5 text-xl font-extrabold">{title}</h3>
-              <p className="mt-2 leading-7 text-muted">{text}</p>
+              <div>
+                <h3 className="text-lg font-extrabold sm:mt-5 sm:text-xl">{title}</h3>
+                <p className="mt-1 text-sm leading-6 text-muted sm:mt-2 sm:text-base sm:leading-7">{text}</p>
+              </div>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="bg-[#0e2b30] py-16 text-white" id="demo">
+      <section className="bg-[#0e2b30] py-10 text-white sm:py-16" id="demo">
         <div className="container-shell grid gap-8 lg:grid-cols-2">
           <div>
             <p className="text-sm font-extrabold text-[#d7a44a]">דמו של דף הזמנות</p>
-            <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">ככה הלקוח רואה את העסק שלך</h2>
-            <p className="mt-4 max-w-xl leading-8 text-white/75">
+            <h2 className="mt-2 text-2xl font-extrabold sm:text-4xl">ככה הלקוח רואה את העסק שלך</h2>
+            <p className="mt-3 max-w-xl leading-7 text-white/75 sm:mt-4 sm:leading-8">
               בלי להסביר כל פעם מה פנוי. הלקוח רואה שירותים, מחירים ושעות, ומשאיר פרטים בצורה נקייה.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link className="focus-ring rounded-[8px] bg-white px-4 py-3 font-bold text-foreground" href="/b/barber-demo">
+              <Link className="focus-ring flex-1 rounded-[8px] bg-white px-4 py-3 text-center font-bold text-foreground sm:flex-none" href="/b/barber-demo">
                 ברבר סטודיו
               </Link>
-              <Link className="focus-ring rounded-[8px] bg-white/10 px-4 py-3 font-bold text-white" href="/b/nails-demo">
+              <Link className="focus-ring flex-1 rounded-[8px] bg-white/10 px-4 py-3 text-center font-bold text-white sm:flex-none" href="/b/nails-demo">
                 נייל סטודיו
               </Link>
-              <Link className="focus-ring rounded-[8px] bg-white/10 px-4 py-3 font-bold text-white" href="/b/clinic-demo">
+              <Link className="focus-ring flex-1 rounded-[8px] bg-white/10 px-4 py-3 text-center font-bold text-white sm:flex-none" href="/b/clinic-demo">
                 קליניקת איזון
               </Link>
             </div>
@@ -217,16 +224,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container-shell grid gap-8 py-16 lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="container-shell grid gap-8 py-10 sm:py-16 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
           <p className="text-sm font-extrabold text-primary">דמו של לוח ניהול</p>
-          <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">פשוט מספיק לבעל עסק עסוק</h2>
-          <p className="mt-4 leading-8 text-muted">
+          <h2 className="mt-2 text-2xl font-extrabold sm:text-4xl">פשוט מספיק לבעל עסק עסוק</h2>
+          <p className="mt-3 leading-7 text-muted sm:mt-4 sm:leading-8">
             סקירה יומית, הזמנות קרובות, שירותים, זמינות, עריכת עמוד העסק ולינק הזמנות להעתקה. בלי מערכת כבדה ובלי תפריטים מבלבלים.
           </p>
           <Link
             href="/dashboard"
-            className="focus-ring mt-6 inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-bold text-white shadow-sm"
+            className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-bold text-white shadow-sm sm:mt-6 sm:w-auto"
           >
             פתח לוח ניהול
             <LayoutDashboard size={18} aria-hidden="true" />
@@ -235,14 +242,14 @@ export default function Home() {
         <DashboardPreview />
       </section>
 
-      <section className="border-y border-line bg-white py-16" id="pricing">
+      <section className="border-y border-line bg-white py-10 sm:py-16" id="pricing">
         <div className="container-shell grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p className="text-sm font-extrabold text-primary">{launchPlan.badge}</p>
-            <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">מצטרפים עכשיו ושומרים על המחיר</h2>
-            <p className="mt-4 leading-8 text-muted">{launchPlan.lockMessage}</p>
+            <h2 className="mt-2 text-2xl font-extrabold sm:text-4xl">מצטרפים עכשיו ושומרים על המחיר</h2>
+            <p className="mt-3 leading-7 text-muted sm:mt-4 sm:leading-8">{launchPlan.lockMessage}</p>
           </div>
-          <div className="soft-card rounded-[8px] p-6">
+          <div className="soft-card rounded-[8px] p-4 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="font-extrabold text-foreground">{launchPlan.name}</p>
@@ -252,13 +259,13 @@ export default function Home() {
                 </div>
                 <p className="mt-2 text-sm font-bold text-accent">מחיר השקה שנשמר ל-5 שנים</p>
               </div>
-              <a
-                href="#demo-form"
-                className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-bold text-white"
+              <Link
+                href="/start"
+                className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-bold text-white sm:w-auto"
               >
-                שמור מחיר השקה
+                צור עמוד
                 <ArrowLeft size={18} aria-hidden="true" />
-              </a>
+              </Link>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {launchPlan.features.map((feature) => (
@@ -272,12 +279,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container-shell py-16">
+      <section className="container-shell py-10 sm:py-16">
         <div className="max-w-2xl">
           <p className="text-sm font-extrabold text-primary">למי זה מתאים</p>
-          <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">עסקים קטנים שמקבלים הזמנות לפי זמן פנוי</h2>
+          <h2 className="mt-2 text-2xl font-extrabold sm:text-4xl">עסקים קטנים שמקבלים הזמנות לפי זמן פנוי</h2>
         </div>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3">
           {businessExamples.map(([item, icon]) => (
             <div key={item} className="flex items-center gap-3 rounded-[8px] border border-line bg-white p-4 font-bold shadow-sm">
               <span className="icon-tile size-10">
@@ -289,24 +296,22 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container-shell grid gap-8 py-16 lg:grid-cols-[0.8fr_1.2fr]" id="faq">
+      <section className="container-shell grid gap-6 py-10 sm:gap-8 sm:py-16 lg:grid-cols-[0.8fr_1.2fr]" id="faq">
         <div>
           <p className="text-sm font-extrabold text-primary">שאלות נפוצות</p>
-          <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">מה חשוב לדעת לפני שמתחילים?</h2>
+          <h2 className="mt-2 text-2xl font-extrabold sm:text-4xl">מה חשוב לדעת לפני שמתחילים?</h2>
         </div>
         <div className="grid gap-3">
           {faq.map((item) => (
-            <details key={item.question} className="rounded-[8px] border border-line bg-white p-5 shadow-sm">
-              <summary className="cursor-pointer text-lg font-extrabold">{item.question}</summary>
-              <p className="mt-3 leading-7 text-muted">{item.answer}</p>
+            <details key={item.question} className="rounded-[8px] border border-line bg-white p-4 shadow-sm sm:p-5">
+              <summary className="cursor-pointer text-base font-extrabold sm:text-lg">{item.question}</summary>
+              <p className="mt-3 text-sm leading-7 text-muted sm:text-base">{item.answer}</p>
             </details>
           ))}
         </div>
       </section>
 
-      <section className="container-shell pb-16">
-        <DemoRequestForm />
-      </section>
+      <SelfServeDemoPanel />
 
       <footer className="border-t border-line bg-white py-8">
         <div className="container-shell flex flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
@@ -324,16 +329,16 @@ export default function Home() {
 
 function HeroProductPreview() {
   return (
-    <div className="soft-card rounded-[8px] bg-white p-4">
-      <div className="rounded-[8px] bg-[#0e2b30] p-4 text-white">
+    <div className="soft-card rounded-[8px] bg-white p-3 sm:p-4">
+      <div className="rounded-[8px] bg-[#0e2b30] p-3 text-white sm:p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-[8px] bg-white text-primary">
+            <span className="grid size-10 place-items-center rounded-[8px] bg-white text-primary sm:size-11">
               <BusinessIcon value="scissors" className="size-6" />
             </span>
             <div>
               <p className="text-sm text-white/65">ברבר סטודיו</p>
-              <h2 className="text-2xl font-extrabold">הזמנת תור</h2>
+              <h2 className="text-xl font-extrabold sm:text-2xl">הזמנת תור</h2>
             </div>
           </div>
           <span className="gold-chip rounded-full px-3 py-1 text-xs font-extrabold">פתוח היום</span>
@@ -343,8 +348,8 @@ function HeroProductPreview() {
             ["תספורת + זקן", 135, "75 דקות"],
             ["תספורת גבר", 90, "45 דקות"],
             ["עיצוב זקן", 55, "30 דקות"],
-          ].map(([name, price, time]) => (
-            <div key={name} className="rounded-[8px] bg-white p-4 text-foreground">
+          ].map(([name, price, time], index) => (
+            <div key={name} className={`rounded-[8px] bg-white p-3 text-foreground sm:p-4 ${index === 2 ? "hidden sm:block" : ""}`}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-extrabold">{name}</p>
@@ -360,7 +365,7 @@ function HeroProductPreview() {
             <Clock3 size={16} aria-hidden="true" />
             שעות פנויות היום
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {["10:30", "11:00", "14:30", "16:00", "17:30", "18:00"].map((time) => (
               <span key={time} className="ltr rounded-[8px] bg-white px-3 py-2 text-center font-extrabold text-foreground">
                 {time}
@@ -375,7 +380,7 @@ function HeroProductPreview() {
 
 function BookingPreview() {
   return (
-    <div className="rounded-[8px] bg-white p-4 text-foreground shadow-2xl">
+    <div className="rounded-[8px] bg-white p-3 text-foreground shadow-2xl sm:p-4">
       <div className="rounded-[8px] border border-line p-4">
         <div className="flex items-center gap-3">
           <span className="icon-tile size-10">
@@ -413,13 +418,13 @@ function BookingPreview() {
 
 function DashboardPreview() {
   return (
-    <div className="soft-card rounded-[8px] bg-white p-4">
+    <div className="soft-card rounded-[8px] bg-white p-3 sm:p-4">
       <div className="grid gap-3 sm:grid-cols-4">
         {[
           ["הזמנות היום", "8"],
           ["קרובות", "14"],
           ["פופולרי", "תספורת"],
-          ["בקשות דמו", "3"],
+          ["דפי דמו", "3"],
         ].map(([label, value]) => (
           <div key={label} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
             <p className="text-sm text-muted">{label}</p>
@@ -429,13 +434,13 @@ function DashboardPreview() {
       </div>
       <div className="mt-4 rounded-[8px] border border-line bg-white">
         {["10:00 אורי לוי - תספורת", "12:00 דניאל כהן - תספורת + זקן", "16:00 יובל ישראלי - עיצוב זקן"].map((row) => (
-          <div key={row} className="flex items-center justify-between border-b border-line px-4 py-3 last:border-b-0">
-            <span className="font-bold">{row}</span>
-            <span className="rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-extrabold text-primary">מסודר</span>
+          <div key={row} className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-3 last:border-b-0 sm:px-4">
+            <span className="min-w-0 font-bold">{row}</span>
+            <span className="shrink-0 rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-extrabold text-primary">מסודר</span>
           </div>
         ))}
       </div>
-      <div className="mt-4 inline-flex items-center gap-2 rounded-[8px] bg-primary px-4 py-3 font-extrabold text-white">
+      <div className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-3 font-extrabold text-white sm:w-auto">
         <Copy size={18} aria-hidden="true" />
         העתק לינק הזמנות
       </div>

@@ -3,8 +3,8 @@ import type { BookingStatus, DemoRequestStatus } from "@/lib/types";
 export const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 export const bookingStatusLabels: Record<BookingStatus, string> = {
-  pending: "ממתין לאישור",
-  confirmed: "אושר",
+  pending: "נקבע",
+  confirmed: "נקבע",
   cancelled: "בוטל",
   completed: "הושלם",
 };

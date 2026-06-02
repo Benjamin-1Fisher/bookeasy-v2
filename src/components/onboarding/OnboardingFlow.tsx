@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import {
   ArrowLeft,
+  Bell,
   Building2,
   CheckCircle2,
   CreditCard,
@@ -26,7 +27,6 @@ type OnboardingForm = {
   phone: string;
   whatsapp: string;
   address: string;
-  slug: string;
   serviceName: string;
   servicePrice: number;
   serviceDurationMinutes: number;
@@ -67,7 +67,6 @@ const initialForm: OnboardingForm = {
   phone: "",
   whatsapp: "",
   address: "",
-  slug: "",
   serviceName: "תספורת גבר",
   servicePrice: 90,
   serviceDurationMinutes: 45,
@@ -75,18 +74,8 @@ const initialForm: OnboardingForm = {
   acceptTerms: false,
 };
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 export function OnboardingFlow() {
   const [form, setForm] = useState<OnboardingForm>(initialForm);
-  const [slugEdited, setSlugEdited] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<OnboardingResult | null>(null);
@@ -95,7 +84,6 @@ export function OnboardingFlow() {
     setForm((current) => ({
       ...current,
       businessName: value,
-      slug: slugEdited ? current.slug : slugify(value),
     }));
   }
 
@@ -143,7 +131,7 @@ export function OnboardingFlow() {
               <p className="text-sm font-extrabold text-primary">התשלום אושר</p>
               <h1 className="mt-2 text-2xl font-extrabold text-foreground sm:text-4xl">עמוד העסק נוצר</h1>
               <p className="mt-3 leading-7 text-muted sm:leading-8">
-                {result.business.name} מוכן לקבל הזמנות. אפשר לפתוח את עמוד הלקוח או להיכנס ללוח הניהול ולהמשיך לערוך.
+                {result.business.name} מוכן לקבל הזמנות, כולל מזכירה אוטומטית לאישורים, תזכורות וביטולים. אפשר לפתוח את עמוד הלקוח או להיכנס ללוח הניהול ולהמשיך לערוך.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link
@@ -177,11 +165,11 @@ export function OnboardingFlow() {
         <p className="text-sm font-extrabold text-primary">הצטרפות</p>
         <h1 className="mt-2 text-2xl font-extrabold text-foreground sm:text-3xl">יוצרים עמוד עסק</h1>
         <p className="mt-3 leading-7 text-muted sm:leading-8">
-          ממלאים פרטים, מאשרים תשלום, ומקבלים לינק הזמנות מוכן לעריכה.
+          ממלאים פרטים, מאשרים תשלום, ומקבלים לינק הזמנות עם מזכירה אוטומטית שמטפלת בהודעות החוזרות.
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2 sm:mt-5 sm:grid-cols-1">
           {[
-            ["1", "פרטי העסק", Boolean(form.businessName && form.phone && form.slug)],
+            ["1", "פרטי העסק", Boolean(form.businessName && form.phone)],
             ["2", "שירות ראשון", Boolean(form.serviceName && form.servicePrice >= 0)],
             ["3", "תשלום ויצירה", form.paymentConfirmed && form.acceptTerms],
           ].map(([number, label, done]) => (
@@ -192,6 +180,14 @@ export function OnboardingFlow() {
               <span className="text-xs font-bold leading-5 sm:text-base">{label}</span>
             </div>
           ))}
+        </div>
+        <div className="mt-4 rounded-[8px] border border-line bg-[#f4f7f5] p-3">
+          <div className="flex items-start gap-2">
+            <Bell size={18} className="mt-1 shrink-0 text-primary" aria-hidden="true" />
+            <p className="text-sm font-bold leading-6 text-muted">
+              המזכירה האוטומטית מופעלת כברירת מחדל: אישור תור, תזכורות, ביטולים ורשימת המתנה.
+            </p>
+          </div>
         </div>
       </aside>
 
@@ -291,24 +287,9 @@ export function OnboardingFlow() {
             </div>
           </div>
 
-          <Field label="לינק עמוד ההזמנות">
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <span className="ltr rounded-[8px] border border-line bg-[#f4f7f5] px-3 py-3 text-sm font-bold text-muted">
-                /b/
-              </span>
-              <input
-                required
-                dir="ltr"
-                value={form.slug}
-                onChange={(event) => {
-                  setSlugEdited(true);
-                  setForm((current) => ({ ...current, slug: slugify(event.target.value) }));
-                }}
-                className="focus-ring ltr min-w-0 flex-1 rounded-[8px] border border-line bg-white px-4 py-3 text-right"
-                placeholder="nails-studio"
-              />
-            </div>
-          </Field>
+          <div className="mt-4 rounded-[8px] border border-line bg-[#f4f7f5] p-4 text-sm font-bold leading-6 text-muted">
+            אחרי יצירת העמוד נקצה לעסק לינק הזמנות אוטומטי ונציג אותו במסך הסיום.
+          </div>
         </section>
 
         <section className="rounded-[8px] border border-line bg-white p-4 shadow-sm sm:p-5">

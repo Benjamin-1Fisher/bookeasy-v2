@@ -9,7 +9,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "BookEasy | לינק הזמנות חכם לעסק קטן",
   description:
-    "BookEasy מאפשר לעסק שלך להציג שירותים, מחירים וזמנים פנויים, והלקוחות מזמינים דרך לינק אחד.",
+    "BookEasy מאפשר לעסק שלך להציג שירותים, מחירים וזמנים פנויים, עם מזכירה אוטומטית שמטפלת באישורים, תזכורות וביטולים.",
 };
 
 export default function RootLayout({

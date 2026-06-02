@@ -17,11 +17,14 @@ export default async function BusinessBookingPage({ params }: { params: Promise<
   }
 
   const { business, services } = bundle;
-  const coverImage = business.coverImageUrl?.trim();
-  const logoImage = business.logoUrl?.trim();
+  const rawCoverImage = business.coverImageUrl?.trim();
+  const rawLogoImage = business.logoUrl?.trim();
+  const duplicateBrandImage = Boolean(rawCoverImage && rawLogoImage && rawCoverImage === rawLogoImage);
+  const coverImage = duplicateBrandImage ? "" : rawCoverImage;
+  const logoImage = duplicateBrandImage ? "" : rawLogoImage;
   const coverStyle = coverImage
     ? {
-        backgroundImage: `linear-gradient(135deg, rgba(13, 48, 50, 0.82), rgba(11, 111, 100, 0.5)), url("${coverImage.replaceAll("\"", "%22")}")`,
+        backgroundImage: `linear-gradient(135deg, rgba(3, 16, 18, 0.95), rgba(8, 45, 48, 0.88)), url("${coverImage.replaceAll("\"", "%22")}")`,
       }
     : undefined;
 
@@ -38,13 +41,10 @@ export default async function BusinessBookingPage({ params }: { params: Promise<
           </Link>
           <div className="grid gap-4 py-5 sm:gap-6 sm:py-8 lg:grid-cols-[1fr_0.72fr] lg:items-end">
             <div>
-              <span className="inline-flex rounded-full bg-white/14 px-3 py-2 text-xs font-bold text-white sm:px-4 sm:text-sm">
-                דף הזמנות לדוגמה
-              </span>
-              <div className="mt-4 flex items-center gap-3 sm:mt-5 sm:gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <span
                   className={`grid size-12 shrink-0 place-items-center overflow-hidden rounded-[8px] bg-white text-primary shadow-sm sm:size-16 ${
-                    logoImage ? "bg-cover bg-center" : ""
+                    logoImage ? "bg-contain bg-center bg-no-repeat" : ""
                   }`}
                   style={logoImage ? { backgroundImage: `url("${logoImage.replaceAll("\"", "%22")}")` } : undefined}
                   aria-hidden="true"

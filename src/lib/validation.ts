@@ -40,12 +40,6 @@ export const onboardingSchema = z.object({
   phone: z.string().trim().regex(phoneRegex, "מספר הטלפון נראה לא תקין"),
   whatsapp: z.string().trim().regex(phoneRegex, "מספר הוואטסאפ נראה לא תקין").optional().or(z.literal("")),
   address: z.string().trim().max(140, "הכתובת ארוכה מדי").optional().or(z.literal("")),
-  slug: z
-    .string()
-    .trim()
-    .min(3, "הלינק קצר מדי")
-    .max(60, "הלינק ארוך מדי")
-    .regex(/^[a-z0-9-]+$/, "אפשר להשתמש רק באותיות באנגלית, מספרים ומקפים"),
   serviceName: z.string().trim().min(2, "צריך לתת שם לשירות הראשון").max(80, "שם השירות ארוך מדי"),
   servicePrice: z.coerce.number().min(0, "יש להזין מחיר במספרים בלבד").max(10000, "המחיר גבוה מדי"),
   serviceDurationMinutes: z.coerce
@@ -79,8 +73,23 @@ export const servicePatchSchema = serviceSchema.partial().extend({
 });
 
 export const bookingStatusSchema = z.object({
-  status: z.enum(["pending", "confirmed", "cancelled", "completed"], {
+  status: z.enum(["pending", "confirmed", "cancelled", "completed", "no_show"], {
     message: "סטטוס ההזמנה לא תקין",
+  }),
+});
+
+export const waitlistSchema = z.object({
+  businessId: z.string().min(1, "חסר מזהה עסק"),
+  serviceId: z.string().min(1, "צריך לבחור שירות").optional().or(z.literal("")),
+  customerName: z.string().trim().min(2, "יש להזין שם מלא").max(80, "השם ארוך מדי"),
+  customerPhone: z.string().trim().regex(phoneRegex, "מספר הטלפון נראה לא תקין. כדאי לבדוק שוב"),
+  preferredDate: z.string().regex(dateRegex, "צריך לבחור תאריך תקין").optional().or(z.literal("")),
+  notes: z.string().trim().max(300, "ההערות ארוכות מדי").optional().or(z.literal("")),
+});
+
+export const waitlistStatusSchema = z.object({
+  status: z.enum(["waiting", "contacted", "closed"], {
+    message: "סטטוס רשימת ההמתנה לא תקין",
   }),
 });
 
@@ -125,6 +134,32 @@ export const businessPatchSchema = z.object({
     .int("טווח ההזמנות חייב להיות מספר שלם")
     .min(1, "אפשר לפתוח הזמנות לפחות ליום אחד קדימה")
     .max(365, "אפשר לפתוח הזמנות עד שנה קדימה")
+    .optional(),
+  assistantSettings: z
+    .object({
+      confirmationEnabled: z.boolean().optional(),
+      remindersEnabled: z.boolean().optional(),
+      reminder24hEnabled: z.boolean().optional(),
+      reminder3hEnabled: z.boolean().optional(),
+      reminderTemplate: z.string().trim().min(4, "תבנית התזכורת קצרה מדי").max(700, "תבנית התזכורת ארוכה מדי").optional(),
+      cancellationFollowUpEnabled: z.boolean().optional(),
+      cancellationFollowUpTemplate: z.string().trim().min(4, "תבנית הביטול קצרה מדי").max(700, "תבנית הביטול ארוכה מדי").optional(),
+      noShowFollowUpEnabled: z.boolean().optional(),
+      noShowFollowUpTemplate: z.string().trim().min(4, "תבנית אי-הגעה קצרה מדי").max(700, "תבנית אי-הגעה ארוכה מדי").optional(),
+      waitlistEnabled: z.boolean().optional(),
+      waitlistMessageTemplate: z.string().trim().min(4, "תבנית רשימת ההמתנה קצרה מדי").max(700, "תבנית רשימת ההמתנה ארוכה מדי").optional(),
+      dailySummaryEnabled: z.boolean().optional(),
+      weeklySummaryEnabled: z.boolean().optional(),
+    })
+    .optional(),
+  faqTemplates: z
+    .object({
+      prices: z.string().trim().min(2, "התשובה קצרה מדי").max(700, "התשובה ארוכה מדי").optional(),
+      location: z.string().trim().min(2, "התשובה קצרה מדי").max(700, "התשובה ארוכה מדי").optional(),
+      openingHours: z.string().trim().min(2, "התשובה קצרה מדי").max(700, "התשובה ארוכה מדי").optional(),
+      cancellationPolicy: z.string().trim().min(2, "התשובה קצרה מדי").max(700, "התשובה ארוכה מדי").optional(),
+      reschedule: z.string().trim().min(2, "התשובה קצרה מדי").max(700, "התשובה ארוכה מדי").optional(),
+    })
     .optional(),
   name: z.string().trim().min(2, "יש להזין שם עסק").max(90, "שם העסק ארוך מדי").optional(),
   description: z.string().trim().min(8, "התיאור קצר מדי").max(400, "התיאור ארוך מדי").optional(),

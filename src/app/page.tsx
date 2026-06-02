@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  Bell,
   CalendarCheck,
   CheckCircle2,
   Clock3,
@@ -8,7 +9,6 @@ import {
   LayoutDashboard,
   Link2,
   MessageCircle,
-  Palette,
   Sparkles,
   Smartphone,
   WandSparkles,
@@ -21,8 +21,13 @@ import { launchPlan } from "@/lib/pricing";
 
 const benefits = [
   {
+    title: "מזכירה אוטומטית",
+    text: "אישורי תור, תזכורות, ביטולים ורשימת המתנה נוצרים אוטומטית לפי התור.",
+    Icon: Bell,
+  },
+  {
     title: "פחות הודעות",
-    text: "הלקוח רואה שירותים, מחירים וזמנים פנויים בלי לשאול שוב ושוב מה אפשרי.",
+    text: "הלקוח רואה שירותים, מחירים וזמנים פנויים, והמזכירה מורידה שאלות חוזרות.",
     Icon: MessageCircle,
   },
   {
@@ -35,18 +40,20 @@ const benefits = [
     text: "כל הזמנה נכנסת עם שירות, שעה, טלפון וסטטוס, במקום להיעלם בתוך צ'אטים.",
     Icon: CalendarCheck,
   },
-  {
-    title: "דף עסק ניתן לעריכה",
-    text: "שם, אייקון, תיאור, צבעים, כתובת, וואטסאפ, שירותים וזמינות מתוך לוח ניהול פשוט.",
-    Icon: Palette,
-  },
 ];
 
 const steps = [
   { title: "מגדירים את העסק", text: "שם, אייקון, תיאור, שירותים, מחירים וזמינות.", Icon: WandSparkles },
   { title: "מקבלים לינק", text: "שמים בביו, שולחים בוואטסאפ או מוסיפים לפרופיל העסק.", Icon: Link2 },
   { title: "הלקוח בוחר לבד", text: "שירות, תאריך, שעה ופרטים אישיים במובייל.", Icon: Smartphone },
-  { title: "הכול נכנס ללוח", text: "התור מופיע מיד בלוח הניהול של העסק.", Icon: LayoutDashboard },
+  { title: "המזכירה ממשיכה", text: "התור נכנס ללוח, והודעות אישור ותזכורת נוצרות אוטומטית.", Icon: Bell },
+];
+
+const secretaryFeatures = [
+  "אישור תור אוטומטי אחרי קביעה",
+  "תזכורות לפני התור",
+  "הודעה אחרי ביטול או אי-הגעה",
+  "רשימת המתנה כשהלקוח לא מוצא שעה",
 ];
 
 const businessExamples = [
@@ -61,7 +68,7 @@ const businessExamples = [
 const faq = [
   {
     question: "מה זה BookEasy?",
-    answer: "לינק הזמנות חכם שמאפשר ללקוחות לבחור שירות ושעה, והתור נכנס ללוח של העסק.",
+    answer: "לינק הזמנות חכם עם מזכירה אוטומטית. הלקוחות בוחרים שירות ושעה, והתור נכנס ללוח של העסק.",
   },
   {
     question: "צריך להשאיר פרטים כדי לראות דמו?",
@@ -69,7 +76,7 @@ const faq = [
   },
   {
     question: "זה מחליף את הוואטסאפ שלי?",
-    answer: "לא. זה מוריד הודעות מיותרות ומביא אליך הזמנות מסודרות יותר.",
+    answer: "לא. זה מוריד הודעות מיותרות: אישורי תור, תזכורות, ביטולים ושאלות חוזרות מטופלים בצורה מסודרת יותר.",
   },
   {
     question: "צריך לבנות אתר?",
@@ -77,7 +84,11 @@ const faq = [
   },
   {
     question: "אפשר לערוך את עמוד העסק?",
-    answer: "כן. בלוח הניהול אפשר לערוך שם, אייקון, תיאור, צבע, טלפון, וואטסאפ, כתובת, שירותים וזמינות.",
+    answer: "כן. בלוח הניהול אפשר לערוך שם, אייקון, תיאור, צבע, טלפון, וואטסאפ, כתובת, שירותים, זמינות והגדרות מזכירה אוטומטית.",
+  },
+  {
+    question: "מה המזכירה האוטומטית עושה?",
+    answer: "היא יוצרת הודעות אישור, תזכורות, הודעות ביטול, הודעה ללקוח שלא הגיע ורשימת המתנה, בלי שבעל העסק יצטרך למלא שמות או פרטי תור ידנית.",
   },
   {
     question: "מה המשמעות של מחיר ההשקה?",
@@ -126,10 +137,10 @@ export default function Home() {
               מצטרפים עכשיו ושומרים מחיר השקה ל-5 שנים
             </div>
             <h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-normal text-foreground sm:text-5xl">
-              תן ללקוחות להזמין לבד
+              תן ללקוחות להזמין לבד, והמזכירה תטפל בהמשך
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted sm:mt-5 sm:text-xl sm:leading-8">
-              BookEasy מאפשר לעסק שלך להציג שירותים, מחירים וזמנים פנויים, והלקוחות מזמינים דרך לינק אחד.
+              BookEasy מציג שירותים, מחירים וזמנים פנויים בלינק אחד, ומוסיף מזכירה אוטומטית לאישורים, תזכורות, ביטולים ורשימת המתנה.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <Link
@@ -148,7 +159,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="mt-6 grid gap-3 text-sm font-bold text-foreground sm:mt-8 sm:grid-cols-3">
-              {["RTL מלא", "מותאם למובייל", "עריכת עמוד עסק"].map((item) => (
+              {["מזכירה אוטומטית", "מותאם למובייל", "עריכת עמוד עסק"].map((item) => (
                 <span key={item} className="flex items-center gap-2">
                   <CheckCircle2 size={18} className="text-primary" aria-hidden="true" />
                   {item}
@@ -200,13 +211,35 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="border-y border-line bg-white py-10 sm:py-16">
+        <div className="container-shell grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <p className="text-sm font-extrabold text-primary">מזכירה אוטומטית</p>
+            <h2 className="mt-2 text-2xl font-extrabold text-foreground sm:text-4xl">פחות “אפשר לקבוע?”, פחות תזכורות ידניות</h2>
+            <p className="mt-3 leading-7 text-muted sm:mt-4 sm:leading-8">
+              אחרי שהלקוח קובע תור, BookEasy מייצר הודעות המשך לפי פרטי התור. בעל העסק יכול לשנות את הנוסח, אבל לא צריך למלא שמות, שעות או קישורים ידנית.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {secretaryFeatures.map((feature) => (
+              <div key={feature} className="flex items-center gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 font-extrabold">
+                <span className="icon-tile size-10 shrink-0">
+                  <Bell size={19} aria-hidden="true" />
+                </span>
+                {feature}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#0e2b30] py-10 text-white sm:py-16" id="demo">
         <div className="container-shell grid gap-8 lg:grid-cols-2">
           <div>
             <p className="text-sm font-extrabold text-[#d7a44a]">דמו של דף הזמנות</p>
             <h2 className="mt-2 text-2xl font-extrabold sm:text-4xl">ככה הלקוח רואה את העסק שלך</h2>
             <p className="mt-3 max-w-xl leading-7 text-white/75 sm:mt-4 sm:leading-8">
-              בלי להסביר כל פעם מה פנוי. הלקוח רואה שירותים, מחירים ושעות, ומשאיר פרטים בצורה נקייה.
+              בלי להסביר כל פעם מה פנוי. הלקוח רואה שירותים, מחירים ושעות, ומשאיר פרטים בצורה נקייה. אחרי הקביעה המזכירה יוצרת הודעת אישור ותזכורות.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link className="focus-ring flex-1 rounded-[8px] bg-white px-4 py-3 text-center font-bold text-foreground sm:flex-none" href="/b/barber-demo">
@@ -229,7 +262,7 @@ export default function Home() {
           <p className="text-sm font-extrabold text-primary">דמו של לוח ניהול</p>
           <h2 className="mt-2 text-2xl font-extrabold sm:text-4xl">פשוט מספיק לבעל עסק עסוק</h2>
           <p className="mt-3 leading-7 text-muted sm:mt-4 sm:leading-8">
-            סקירה יומית, הזמנות קרובות, שירותים, זמינות, עריכת עמוד העסק ולינק הזמנות להעתקה. בלי מערכת כבדה ובלי תפריטים מבלבלים.
+            סקירה יומית, הזמנות קרובות, שירותים, זמינות, מזכירה אוטומטית, עריכת עמוד העסק ולינק הזמנות להעתקה. בלי מערכת כבדה ובלי תפריטים מבלבלים.
           </p>
           <Link
             href="/dashboard"
@@ -423,7 +456,7 @@ function DashboardPreview() {
         {[
           ["הזמנות היום", "8"],
           ["קרובות", "14"],
-          ["פופולרי", "תספורת"],
+          ["מזכירה", "פעילה"],
           ["דפי דמו", "3"],
         ].map(([label, value]) => (
           <div key={label} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
@@ -439,6 +472,10 @@ function DashboardPreview() {
             <span className="shrink-0 rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-extrabold text-primary">מסודר</span>
           </div>
         ))}
+      </div>
+      <div className="mt-4 rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+        <p className="font-extrabold">מזכירה אוטומטית</p>
+        <p className="mt-1 text-sm leading-6 text-muted">אישור תור ותזכורת נוצרו אוטומטית ללקוח הבא.</p>
       </div>
       <div className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-3 font-extrabold text-white sm:w-auto">
         <Copy size={18} aria-hidden="true" />

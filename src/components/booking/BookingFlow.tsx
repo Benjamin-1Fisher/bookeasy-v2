@@ -1,10 +1,15 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock3, MessageSquareText, UserRound } from "lucide-react";
+import {
+  buildBookingLinks,
+  generateCancellationMessage,
+  generateConfirmationMessage,
+} from "@/lib/assistant";
 import { addDaysToDateKey, dateFromKey, getBookingWindowBounds } from "@/lib/booking-window";
 import { formatDate, formatDuration, formatPrice } from "@/lib/format";
-import type { Booking, Business, Service, Slot } from "@/lib/types";
+import type { Booking, Business, Service, Slot, WaitlistEntry } from "@/lib/types";
 
 type BookingFlowProps = {
   business: Business;
@@ -166,8 +171,10 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
   const [form, setForm] = useState<BookingForm>(initialForm);
   const [loadingSlots, setLoadingSlots] = useState(Boolean(selectedServiceId));
   const [submitting, setSubmitting] = useState(false);
+  const [joiningWaitlist, setJoiningWaitlist] = useState(false);
   const [error, setError] = useState("");
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [waitlistEntry, setWaitlistEntry] = useState<WaitlistEntry | null>(null);
 
   const selectedService = activeServices.find((service) => service.id === selectedServiceId) ?? activeServices[0];
   const availableSlots = useMemo(() => slots.filter((slot) => slot.available), [slots]);
@@ -314,6 +321,47 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
       customerPhone: form.customerPhone,
     });
     setBooking(data.booking);
+  }
+
+  async function joinWaitlist() {
+    if (!selectedService) {
+      setError("צריך לבחור שירות כדי להצטרף לרשימת המתנה");
+      return;
+    }
+
+    if (!form.customerName || !form.customerPhone) {
+      setError("כדי להצטרף לרשימת המתנה צריך להשאיר שם וטלפון");
+      return;
+    }
+
+    setJoiningWaitlist(true);
+    setError("");
+
+    const response = await fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        businessId: business.id,
+        serviceId: selectedService.id,
+        preferredDate: date,
+        customerName: form.customerName,
+        customerPhone: form.customerPhone,
+        notes: form.notes,
+      }),
+    });
+    const data = (await response.json()) as { entry?: WaitlistEntry; error?: string };
+    setJoiningWaitlist(false);
+
+    if (!response.ok || !data.entry) {
+      setError(data.error ?? "לא הצלחנו לצרף אותך לרשימת ההמתנה");
+      return;
+    }
+
+    saveCustomerDetails({
+      customerName: form.customerName,
+      customerPhone: form.customerPhone,
+    });
+    setWaitlistEntry(data.entry);
   }
 
   if (!selectedService) {
@@ -515,6 +563,17 @@ export function BookingFlow({ business, services }: BookingFlowProps) {
                     >
                       {date >= maxDate ? "אין תאריכים נוספים בטווח" : "בדיקת היום הבא"}
                     </button>
+                    {business.assistantSettings?.waitlistEnabled ? (
+                      <WaitlistPanel
+                        joined={Boolean(waitlistEntry)}
+                        service={selectedService}
+                        selectedDate={date}
+                        form={form}
+                        setForm={setForm}
+                        joining={joiningWaitlist}
+                        onJoin={joinWaitlist}
+                      />
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -713,7 +772,96 @@ function BookingCalendar({
   );
 }
 
+function WaitlistPanel({
+  joined,
+  service,
+  selectedDate,
+  form,
+  setForm,
+  joining,
+  onJoin,
+}: {
+  joined: boolean;
+  service: Service;
+  selectedDate: string;
+  form: BookingForm;
+  setForm: Dispatch<SetStateAction<BookingForm>>;
+  joining: boolean;
+  onJoin: () => Promise<void>;
+}) {
+  if (joined) {
+    return (
+      <div className="mt-4 rounded-[8px] bg-[#e8f3ef] p-4 text-right text-primary">
+        <p className="font-extrabold">נכנסת לרשימת המתנה</p>
+        <p className="mt-1 text-sm font-bold">אם יתפנה זמן מתאים, העסק יוכל לשלוח לך הודעה לקביעת תור חדש.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-5 rounded-[8px] border border-line bg-[#f4f7f5] p-4 text-right">
+      <p className="text-base font-extrabold text-foreground">רשימת המתנה</p>
+      <p className="mt-1 text-sm font-bold text-muted">
+        אפשר להשאיר פרטים עבור {service.name} ב-{formatDate(selectedDate)}, ואם יתפנה מקום העסק יוכל לשלוח הודעה.
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="grid gap-2 text-sm font-bold text-foreground">
+          שם מלא
+          <input
+            value={form.customerName}
+            onChange={(event) => setForm((current) => ({ ...current, customerName: event.target.value }))}
+            className="focus-ring rounded-[8px] border border-line bg-white px-3 py-3"
+            placeholder="איך נקרא לך?"
+          />
+        </label>
+        <label className="grid gap-2 text-sm font-bold text-foreground">
+          טלפון
+          <input
+            dir="ltr"
+            value={form.customerPhone}
+            onChange={(event) => setForm((current) => ({ ...current, customerPhone: event.target.value }))}
+            className="focus-ring ltr rounded-[8px] border border-line bg-white px-3 py-3 text-right"
+            placeholder="050-0000000"
+          />
+        </label>
+      </div>
+      <button
+        type="button"
+        onClick={onJoin}
+        disabled={joining}
+        className="focus-ring mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-[8px] bg-primary px-4 py-2 text-sm font-extrabold text-white disabled:opacity-60 sm:w-auto"
+      >
+        {joining ? "מצרף לרשימה..." : "הצטרפות לרשימת המתנה"}
+      </button>
+    </div>
+  );
+}
+
 function Confirmation({ business, service, booking }: { business: Business; service: Service; booking: Booking }) {
+  const [cancelled, setCancelled] = useState(booking.status === "cancelled");
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+  const links = buildBookingLinks(business, booking);
+  const confirmationEnabled = business.assistantSettings?.confirmationEnabled !== false;
+  const confirmationMessage = confirmationEnabled ? generateConfirmationMessage(business, service, booking) : "";
+  const cancellationMessage = generateCancellationMessage(business, service, { ...booking, status: "cancelled" });
+
+  async function cancelAppointment() {
+    setCancelling(true);
+    setCancelError("");
+
+    const response = await fetch(`/api/bookings/${booking.id}/cancel`, { method: "POST" });
+    const data = (await response.json()) as { error?: string };
+    setCancelling(false);
+
+    if (!response.ok) {
+      setCancelError(data.error ?? "לא הצלחנו לבטל את התור");
+      return;
+    }
+
+    setCancelled(true);
+  }
+
   return (
     <section className="soft-card rounded-[8px] p-4 text-center sm:p-6">
       <div className="mx-auto grid size-14 place-items-center rounded-full bg-[#e8f3ef] text-primary">
@@ -737,6 +885,43 @@ function Confirmation({ business, service, booking }: { business: Business; serv
         <p>
           <span className="font-extrabold">שם:</span> {booking.customerName}
         </p>
+      </div>
+      <div className="mx-auto mt-4 grid max-w-lg gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 text-right">
+        {confirmationEnabled ? (
+          <>
+            <p className="font-extrabold">הודעת אישור מוכנה לשליחה</p>
+            <pre className="whitespace-pre-wrap rounded-[8px] bg-white p-3 text-right text-sm leading-6 text-foreground">{confirmationMessage}</pre>
+          </>
+        ) : null}
+        <div className="grid gap-2 sm:grid-cols-3">
+          <a
+            href={links.rescheduleLink}
+            className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-extrabold text-foreground"
+          >
+            שינוי תור
+          </a>
+          <button
+            type="button"
+            onClick={cancelAppointment}
+            disabled={cancelled || cancelling}
+            className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] border border-red-100 bg-white px-3 py-2 text-sm font-extrabold text-red-700 disabled:opacity-60"
+          >
+            {cancelled ? "התור בוטל" : cancelling ? "מבטל..." : "ביטול תור"}
+          </button>
+          <a
+            href={links.bookAgainLink}
+            className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] bg-primary px-3 py-2 text-sm font-extrabold text-white"
+          >
+            קביעת תור נוסף
+          </a>
+        </div>
+        {cancelled ? (
+          <div className="rounded-[8px] bg-white p-3">
+            <p className="mb-2 text-sm font-extrabold text-primary">הודעה אחרי ביטול</p>
+            <p className="text-sm leading-6 text-foreground">{cancellationMessage}</p>
+          </div>
+        ) : null}
+        {cancelError ? <p className="text-sm font-bold text-red-700">{cancelError}</p> : null}
       </div>
     </section>
   );

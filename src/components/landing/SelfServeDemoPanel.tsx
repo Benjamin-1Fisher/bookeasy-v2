@@ -5,19 +5,19 @@ import { BusinessIcon } from "@/components/ui/BusinessIcon";
 const demoPages = [
   {
     title: "ברבר סטודיו",
-    text: "דף הזמנות עם שירותים, מחירים ושעות פנויות.",
+    text: "דף הזמנות עם שירותים, מחירים, שעות פנויות ומזכירה אוטומטית.",
     href: "/b/barber-demo",
     icon: "scissors",
   },
   {
     title: "נייל סטודיו",
-    text: "חוויה מוביילית להזמנת תור לציפורניים וקוסמטיקה.",
+    text: "חוויה מוביילית להזמנת תור, כולל אישורים ותזכורות אוטומטיות.",
     href: "/b/nails-demo",
     icon: "sparkles",
   },
   {
     title: "קליניקת איזון",
-    text: "דמו רגוע לקליניקה עם זמינות ושירותים קצרים.",
+    text: "דמו רגוע לקליניקה עם זמינות, שירותים ורשימת המתנה.",
     href: "/b/clinic-demo",
     icon: "heart-pulse",
   },
@@ -31,7 +31,7 @@ export function SelfServeDemoPanel() {
           <p className="text-sm font-extrabold text-primary">דמו עצמאי</p>
           <h2 className="mt-2 text-2xl font-extrabold text-foreground sm:text-4xl">פותחים דמו בלי להשאיר פרטים</h2>
           <p className="mt-3 leading-7 text-muted sm:mt-4 sm:leading-8">
-            כל מסכי הדמו פתוחים לצפייה מיידית. אפשר לבדוק דף הזמנות של לקוח, לפתוח את לוח הניהול ולהבין לבד אם זה מתאים לעסק.
+            כל מסכי הדמו פתוחים לצפייה מיידית. אפשר לבדוק דף הזמנות של לקוח, לפתוח את לוח הניהול ולראות גם את המזכירה האוטומטית.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link

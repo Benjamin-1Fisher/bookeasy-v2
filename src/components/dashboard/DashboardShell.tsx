@@ -4,28 +4,54 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import {
   BadgeDollarSign,
+  Bell,
   CalendarClock,
   CalendarDays,
   Check,
   ClipboardList,
   ExternalLink,
   Eye,
+  HelpCircle,
   LayoutDashboard,
   LinkIcon,
+  ListChecks,
+  MessageSquareText,
   Plus,
+  RefreshCcw,
   Save,
+  Send,
   Settings,
   ToggleLeft,
   Trash2,
   Upload,
+  UserX,
 } from "lucide-react";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { BusinessIcon, businessIconOptions } from "@/components/ui/BusinessIcon";
+import {
+  generateCancellationMessage,
+  generateConfirmationMessage,
+  generateNoShowMessage,
+  generateReminderMessage,
+  generateWaitlistMessage,
+  normalizeAssistantSettings,
+  normalizeFaqTemplates,
+} from "@/lib/assistant";
 import { bookingStatusLabels, dayNames, formatDuration, formatPrice, getBusinessToneClasses } from "@/lib/format";
 import { launchPlan } from "@/lib/pricing";
-import type { AvailabilityRule, Booking, BookingStatus, Business, Service } from "@/lib/types";
+import type {
+  AssistantSettings,
+  AvailabilityRule,
+  Booking,
+  BookingStatus,
+  Business,
+  FaqTemplates,
+  Service,
+  WaitlistEntry,
+  WaitlistStatus,
+} from "@/lib/types";
 
-const scheduleStatusOptions: BookingStatus[] = ["confirmed", "completed", "cancelled"];
+const scheduleStatusOptions: BookingStatus[] = ["confirmed", "completed", "cancelled", "no_show"];
 const maxProfileImageSize = 1_500_000;
 
 type SummaryCards = {
@@ -40,28 +66,43 @@ type DashboardInitialData = {
   business: Business;
   services: Service[];
   bookings: Booking[];
+  waitlistEntries: WaitlistEntry[];
   availabilityRules: AvailabilityRule[];
+  assistantSummary: {
+    daily: AssistantSummary;
+    weekly: AssistantSummary;
+  };
   cards: SummaryCards;
+};
+
+type AssistantSummary = {
+  newBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  noShows: number;
+  upcomingAppointments: number;
+  waitlistCount: number;
 };
 
 type DashboardShellProps = {
   initialData: DashboardInitialData;
 };
 
-type Tab = "overview" | "bookings" | "services" | "availability" | "profile";
+type Tab = "overview" | "bookings" | "services" | "availability" | "assistant" | "profile";
 
 const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
   { id: "overview", label: "סקירה", icon: LayoutDashboard },
   { id: "bookings", label: "הזמנות", icon: ClipboardList },
   { id: "services", label: "שירותים", icon: Settings },
   { id: "availability", label: "זמינות", icon: CalendarDays },
+  { id: "assistant", label: "מזכירה אוטומטית", icon: Bell },
   { id: "profile", label: "עמוד העסק", icon: LinkIcon },
 ];
 
 const toneOptions: Array<{ value: Business["coverTone"]; label: string }> = [
-  { value: "teal", label: "ירוק מקצועי" },
-  { value: "rose", label: "ורוד עדין" },
-  { value: "blue", label: "כחול רגוע" },
+  { value: "teal", label: "כחול חשמלי" },
+  { value: "rose", label: "כחול סגלגל" },
+  { value: "blue", label: "כחול עמוק" },
 ];
 
 const categoryOptions: Array<{ value: Business["category"]; label: string }> = [
@@ -71,6 +112,12 @@ const categoryOptions: Array<{ value: Business["category"]; label: string }> = [
   { value: "fitness", label: "אימון אישי" },
   { value: "other", label: "אחר" },
 ];
+
+const waitlistStatusLabels: Record<WaitlistStatus, string> = {
+  waiting: "ממתין",
+  contacted: "נשלחה הודעה",
+  closed: "נסגר",
+};
 
 const emptyService = {
   name: "",
@@ -88,15 +135,18 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
   const [business, setBusiness] = useState(initialData.business);
   const [services, setServices] = useState(initialData.services);
   const [bookings, setBookings] = useState(initialData.bookings);
+  const [waitlistEntries, setWaitlistEntries] = useState(initialData.waitlistEntries);
   const [availabilityRules, setAvailabilityRules] = useState(initialData.availabilityRules);
+  const [assistantSummary, setAssistantSummary] = useState(initialData.assistantSummary);
   const [cards, setCards] = useState(initialData.cards);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const bookingLink = `/b/${business.slug}`;
   const today = getToday();
-  const todayBookings = bookings.filter((booking) => booking.date === today && booking.status !== "cancelled");
-  const upcomingBookings = bookings.filter((booking) => booking.date >= today && booking.status !== "cancelled");
+  const activeBooking = (booking: Booking) => booking.status !== "cancelled" && booking.status !== "completed" && booking.status !== "no_show";
+  const todayBookings = bookings.filter((booking) => booking.date === today && activeBooking(booking));
+  const upcomingBookings = bookings.filter((booking) => booking.date >= today && activeBooking(booking));
 
   async function refreshSummary() {
     const response = await fetch(`/api/admin/summary?businessId=${business.id}`);
@@ -110,7 +160,9 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
     setBusiness(data.business);
     setServices(data.services);
     setBookings(data.bookings);
+    setWaitlistEntries(data.waitlistEntries);
     setAvailabilityRules(data.availabilityRules);
+    setAssistantSummary(data.assistantSummary);
     setCards(data.cards);
   }
 
@@ -118,6 +170,40 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
     setError("");
     setMessage(text);
     window.setTimeout(() => setMessage(""), 2200);
+  }
+
+  async function updateBookingStatusFromDashboard(id: string, status: BookingStatus) {
+    const response = await fetch(`/api/admin/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    const data = (await response.json()) as { error?: string };
+
+    if (!response.ok) {
+      setError(data.error ?? "לא הצלחנו לעדכן סטטוס");
+      return;
+    }
+
+    await refreshSummary();
+    notify(status === "no_show" ? "סומן שהלקוח לא הגיע" : "סטטוס ההזמנה עודכן");
+  }
+
+  async function updateWaitlistStatusFromDashboard(id: string, status: WaitlistStatus) {
+    const response = await fetch(`/api/admin/waitlist/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    const data = (await response.json()) as { error?: string };
+
+    if (!response.ok) {
+      setError(data.error ?? "לא הצלחנו לעדכן את רשימת ההמתנה");
+      return;
+    }
+
+    await refreshSummary();
+    notify("רשימת ההמתנה עודכנה");
   }
 
   return (
@@ -202,22 +288,7 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
             <BookingsTab
               bookings={bookings}
               services={services}
-              onStatusChange={async (id, status) => {
-                const response = await fetch(`/api/admin/bookings/${id}`, {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ status }),
-                });
-                const data = (await response.json()) as { error?: string };
-
-                if (!response.ok) {
-                  setError(data.error ?? "לא הצלחנו לעדכן סטטוס");
-                  return;
-                }
-
-                await refreshSummary();
-                notify("סטטוס ההזמנה עודכן");
-              }}
+              onStatusChange={updateBookingStatusFromDashboard}
             />
           ) : null}
 
@@ -241,6 +312,22 @@ export function DashboardShell({ initialData }: DashboardShellProps) {
               refreshSummary={refreshSummary}
               notify={notify}
               setError={setError}
+            />
+          ) : null}
+
+          {activeTab === "assistant" ? (
+            <AutomaticAssistantTab
+              business={business}
+              setBusiness={setBusiness}
+              services={services}
+              bookings={bookings}
+              waitlistEntries={waitlistEntries}
+              assistantSummary={assistantSummary}
+              bookingLink={bookingLink}
+              notify={notify}
+              setError={setError}
+              onBookingStatusChange={updateBookingStatusFromDashboard}
+              onWaitlistStatusChange={updateWaitlistStatusFromDashboard}
             />
           ) : null}
 
@@ -283,7 +370,7 @@ function OverviewTab({
           ["סך כל ההזמנות", cards.totalBookings],
           ["הזמנות קרובות", cards.upcomingBookings],
           ["השירות הכי פופולרי", cards.popularService],
-          ["דפי דמו פתוחים", cards.publicDemoPages],
+          ["עמוד הזמנות", "פעיל"],
         ].map(([label, value]) => (
           <article key={label} className="soft-card rounded-[8px] p-5">
             <p className="text-sm font-bold text-muted">{label}</p>
@@ -310,31 +397,7 @@ function OverviewTab({
         </Panel>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <Panel title="גישה עצמאית לדמו" icon={ExternalLink}>
-          <div className="grid gap-4">
-            <p className="leading-7 text-muted">
-              אפשר לפתוח את דף ההזמנות ואת לוח הניהול בלי לשלוח פרטים. זה המקום לבדוק את החוויה כמו בעל עסק וכמו לקוח.
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <a
-                className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-[8px] bg-primary px-4 py-2 font-bold text-white"
-                href={`/b/${business.slug}`}
-                target="_blank"
-              >
-                פתח דף הזמנות
-                <ExternalLink size={16} aria-hidden="true" />
-              </a>
-              <Link
-                className="focus-ring inline-flex min-h-11 items-center justify-center rounded-[8px] border border-line bg-white px-4 py-2 font-bold text-foreground"
-                href="/#demo-access"
-              >
-                כל הדמוים
-              </Link>
-            </div>
-          </div>
-        </Panel>
-
+      <div className="grid gap-5">
         <Panel title="תצוגה מקדימה של דף ההזמנות" icon={Eye}>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted">כך נראה הלינק שהלקוחות יקבלו.</p>
@@ -813,6 +876,325 @@ function AvailabilityTab({
   );
 }
 
+function AutomaticAssistantTab({
+  business,
+  setBusiness,
+  services,
+  bookings,
+  waitlistEntries,
+  assistantSummary,
+  bookingLink,
+  notify,
+  setError,
+  onBookingStatusChange,
+  onWaitlistStatusChange,
+}: {
+  business: Business;
+  setBusiness: (business: Business) => void;
+  services: Service[];
+  bookings: Booking[];
+  waitlistEntries: WaitlistEntry[];
+  assistantSummary: DashboardInitialData["assistantSummary"];
+  bookingLink: string;
+  notify: (text: string) => void;
+  setError: (text: string) => void;
+  onBookingStatusChange: (id: string, status: BookingStatus) => Promise<void>;
+  onWaitlistStatusChange: (id: string, status: WaitlistStatus) => Promise<void>;
+}) {
+  const [settings, setSettings] = useState<AssistantSettings>(normalizeAssistantSettings(business.assistantSettings));
+  const [faqTemplates, setFaqTemplates] = useState<FaqTemplates>(normalizeFaqTemplates(business.faqTemplates));
+  const service = services[0];
+  const previewBooking = getPreviewBooking(business, service, bookings[0]);
+  const waitingEntries = waitlistEntries.filter((entry) => entry.status === "waiting");
+
+  async function save() {
+    const response = await fetch("/api/admin/business", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId: business.id, assistantSettings: settings, faqTemplates }),
+    });
+    const data = (await response.json()) as { business?: Business; error?: string };
+
+    if (!response.ok || !data.business) {
+      setError(data.error ?? "לא הצלחנו לשמור את הגדרות המזכירה");
+      return;
+    }
+
+    setBusiness(data.business);
+    notify("הגדרות המזכירה נשמרו");
+  }
+
+  if (!service || !previewBooking) {
+    return (
+      <Panel title="מזכירה אוטומטית" icon={Bell}>
+        <EmptyState title="צריך שירות ראשון" text="אחרי הוספת שירות אפשר יהיה להגדיר הודעות ותזכורות." />
+      </Panel>
+    );
+  }
+
+  const confirmationMessage = settings.confirmationEnabled ? generateConfirmationMessage({ ...business, assistantSettings: settings }, service, previewBooking) : "";
+  const reminderMessage = generateReminderMessage({ ...business, assistantSettings: settings }, service, previewBooking);
+  const cancellationMessage = generateCancellationMessage({ ...business, assistantSettings: settings }, service, previewBooking);
+  const noShowMessage = generateNoShowMessage({ ...business, assistantSettings: settings }, service, previewBooking);
+  const firstWaitlistEntry = waitingEntries[0] ?? waitlistEntries[0];
+  const waitlistMessage = firstWaitlistEntry
+    ? generateWaitlistMessage({ ...business, assistantSettings: settings }, firstWaitlistEntry, services.find((item) => item.id === firstWaitlistEntry.serviceId) ?? service)
+    : generateWaitlistMessage(
+        { ...business, assistantSettings: settings },
+        {
+          id: "preview_waitlist",
+          businessId: business.id,
+          serviceId: service.id,
+          customerName: "לקוח לדוגמה",
+          customerPhone: "050-0000000",
+          preferredDate: previewBooking.date,
+          notes: "",
+          status: "waiting",
+          createdAt: previewBooking.createdAt,
+          updatedAt: previewBooking.updatedAt,
+        },
+        service,
+      );
+
+  return (
+    <div className="grid gap-5">
+      <Panel title="מזכירה אוטומטית" icon={Bell}>
+        <div>
+          <p className="text-lg font-extrabold">פחות הודעות חוזרות, יותר תורים מסודרים</p>
+          <p className="mt-2 max-w-3xl leading-7 text-muted">
+            המזכירה יוצרת הודעות אוטומטית לכל לקוח לפי הפעולה: אישור תור, תזכורת, ביטול, אי-הגעה ורשימת המתנה.
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <ToggleCard
+            title="אישור תור אוטומטי"
+            text="נוצרת אוטומטית מיד אחרי שהלקוח קובע תור."
+            checked={settings.confirmationEnabled}
+            onChange={(value) => setSettings({ ...settings, confirmationEnabled: value })}
+          />
+          <ToggleCard
+            title="תזכורות לתורים"
+            text="נוצרות אוטומטית לפני התור לפי הזמנים שבחרת."
+            checked={settings.remindersEnabled}
+            onChange={(value) => setSettings({ ...settings, remindersEnabled: value })}
+          />
+          <ToggleCard
+            title="הודעה אחרי ביטול"
+            text="נוצרת אוטומטית עם קישור לקביעת תור חדש."
+            checked={settings.cancellationFollowUpEnabled}
+            onChange={(value) => setSettings({ ...settings, cancellationFollowUpEnabled: value })}
+          />
+          <ToggleCard
+            title="הודעה ללקוח שלא הגיע"
+            text="נוצרת אוטומטית אחרי סימון הלקוח כלא הגיע."
+            checked={settings.noShowFollowUpEnabled}
+            onChange={(value) => setSettings({ ...settings, noShowFollowUpEnabled: value })}
+          />
+          <ToggleCard
+            title="רשימת המתנה"
+            text="נוצרת הודעה אוטומטית ללקוח ברשימת ההמתנה."
+            checked={settings.waitlistEnabled}
+            onChange={(value) => setSettings({ ...settings, waitlistEnabled: value })}
+          />
+          <ToggleCard
+            title="סיכום יומי"
+            text="תצוגת נתונים יומית ושבועית בלוח הניהול."
+            checked={settings.dailySummaryEnabled}
+            onChange={(value) => setSettings({ ...settings, dailySummaryEnabled: value })}
+          />
+        </div>
+      </Panel>
+
+      <Panel title="תזכורות לתורים" icon={Bell}>
+        <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="grid gap-3">
+            <ToggleRow
+              label="תזכורת 24 שעות לפני התור"
+              checked={settings.remindersEnabled && settings.reminder24hEnabled}
+              onChange={(value) => setSettings({ ...settings, remindersEnabled: value || settings.remindersEnabled, reminder24hEnabled: value })}
+            />
+            <ToggleRow
+              label="תזכורת 3 שעות לפני התור"
+              checked={settings.remindersEnabled && settings.reminder3hEnabled}
+              onChange={(value) => setSettings({ ...settings, remindersEnabled: value || settings.remindersEnabled, reminder3hEnabled: value })}
+            />
+          </div>
+          <EditableMessage
+            title="הודעת תזכורת אוטומטית"
+            editLabel="עריכת נוסח תזכורת"
+            value={settings.reminderTemplate}
+            message={reminderMessage}
+            onChange={(value) => setSettings({ ...settings, reminderTemplate: value })}
+          />
+        </div>
+      </Panel>
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Panel title="הודעות המשך" icon={MessageSquareText}>
+          <div className="grid gap-4">
+            <EditableMessage
+              title="הודעה אחרי ביטול"
+              editLabel="עריכת נוסח ביטול"
+              value={settings.cancellationFollowUpTemplate}
+              message={cancellationMessage}
+              onChange={(value) => setSettings({ ...settings, cancellationFollowUpTemplate: value })}
+            />
+            <EditableMessage
+              title="הודעה ללקוח שלא הגיע"
+              editLabel="עריכת נוסח אי-הגעה"
+              value={settings.noShowFollowUpTemplate}
+              message={noShowMessage}
+              onChange={(value) => setSettings({ ...settings, noShowFollowUpTemplate: value })}
+            />
+          </div>
+        </Panel>
+
+        <Panel title="פעולות מהירות לתור" icon={UserX}>
+          <div className="grid gap-3">
+            <MessagePreview title="אישור תור" message={confirmationMessage || "אישור תור כבוי כרגע"} />
+            <div className="grid gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+              <p className="font-extrabold">סימון אי-הגעה</p>
+              <p className="text-sm text-muted">כשמסמנים “הלקוח לא הגיע”, המזכירה יוצרת אוטומטית הודעה עם קישור לקביעה מחדש.</p>
+              {bookings.slice(0, 3).map((booking) => {
+                const bookingService = services.find((item) => item.id === booking.serviceId);
+                return (
+                  <div key={booking.id} className="flex flex-col gap-2 rounded-[8px] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-extrabold">{booking.customerName}</p>
+                      <p className="text-sm text-muted">
+                        {bookingService?.name ?? "שירות"} · {booking.date} · <span className="ltr inline-block">{booking.startTime}</span>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onBookingStatusChange(booking.id, "no_show")}
+                      className="focus-ring inline-flex min-h-10 items-center justify-center rounded-[8px] border border-line px-3 py-2 text-sm font-extrabold text-foreground"
+                    >
+                      הלקוח לא הגיע
+                    </button>
+                  </div>
+                );
+              })}
+              {!bookings.length ? <EmptyState title="אין תורים עדיין" text="אחרי שיהיו תורים אפשר יהיה לסמן אי-הגעה מכאן." /> : null}
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      <Panel title="רשימת המתנה" icon={ListChecks}>
+        <div className="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
+          <div>
+            <div className="grid gap-3">
+              {waitlistEntries.length ? (
+                waitlistEntries.map((entry) => {
+                  const entryService = services.find((item) => item.id === entry.serviceId);
+                  return (
+                    <div key={entry.id} className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="font-extrabold">{entry.customerName}</p>
+                          <p className="mt-1 text-sm text-muted">
+                            {entryService?.name ?? "כל שירות"} · <span className="ltr inline-block">{entry.customerPhone}</span>
+                          </p>
+                          <p className="mt-1 text-sm text-muted">
+                            {entry.preferredDate ? `תאריך מבוקש: ${entry.preferredDate}` : "אין תאריך ספציפי"} · {waitlistStatusLabels[entry.status]}
+                          </p>
+                          {entry.notes ? <p className="mt-2 text-sm leading-6 text-muted">{entry.notes}</p> : null}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onWaitlistStatusChange(entry.id, "contacted")}
+                            className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-extrabold text-white"
+                          >
+                            <Send size={15} aria-hidden="true" />
+                            סומן שנשלחה הודעה
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onWaitlistStatusChange(entry.id, "closed")}
+                            className="focus-ring inline-flex min-h-10 items-center justify-center rounded-[8px] border border-line bg-white px-3 py-2 text-sm font-extrabold"
+                          >
+                            סגור
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <EmptyState title="אין לקוחות ברשימת המתנה" text="כשלקוח לא מוצא שעה מתאימה, הוא יוכל להשאיר פרטים." />
+              )}
+            </div>
+          </div>
+          <EditableMessage
+            title="הודעה מוכנה לרשימת המתנה"
+            editLabel="עריכת נוסח רשימת המתנה"
+            value={settings.waitlistMessageTemplate}
+            message={waitlistMessage}
+            onChange={(value) => setSettings({ ...settings, waitlistMessageTemplate: value })}
+          />
+        </div>
+      </Panel>
+
+      <Panel title="תשובות מוכנות" icon={HelpCircle}>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <TemplateField label="מחירים" value={faqTemplates.prices} onChange={(value) => setFaqTemplates({ ...faqTemplates, prices: value })} />
+          <TemplateField label="מיקום" value={faqTemplates.location} onChange={(value) => setFaqTemplates({ ...faqTemplates, location: value })} />
+          <TemplateField
+            label="שעות פתיחה"
+            value={faqTemplates.openingHours}
+            onChange={(value) => setFaqTemplates({ ...faqTemplates, openingHours: value })}
+          />
+          <TemplateField
+            label="מדיניות ביטולים"
+            value={faqTemplates.cancellationPolicy}
+            onChange={(value) => setFaqTemplates({ ...faqTemplates, cancellationPolicy: value })}
+          />
+          <TemplateField
+            label="איך משנים תור"
+            value={faqTemplates.reschedule}
+            onChange={(value) => setFaqTemplates({ ...faqTemplates, reschedule: value })}
+          />
+          <div className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+            <p className="font-extrabold">צריך מענה ידני</p>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              אם שאלה לא מתאימה לתשובות המוכנות, בעל העסק רואה שצריך לענות ידנית. אין כאן חיבור חיצוני או יצירת תשובה אוטומטית.
+            </p>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel title="סיכום יומי" icon={CalendarClock}>
+        <div className="grid gap-5 xl:grid-cols-2">
+          <SummaryBlock title="היום" summary={assistantSummary.daily} />
+          <SummaryBlock title="השבוע" summary={assistantSummary.weekly} />
+        </div>
+      </Panel>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          onClick={save}
+          className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-primary px-5 py-3 font-extrabold text-white"
+        >
+          <Save size={18} aria-hidden="true" />
+          שמור מזכירה
+        </button>
+        <a
+          href={bookingLink}
+          target="_blank"
+          className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] border border-line bg-white px-5 py-3 font-extrabold text-foreground"
+        >
+          <RefreshCcw size={18} aria-hidden="true" />
+          בדיקת דף הזמנות
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function ProfileTab({
   business,
   setBusiness,
@@ -1152,6 +1534,145 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {label}
       {children}
     </label>
+  );
+}
+
+function getPreviewBooking(business: Business, service?: Service, booking?: Booking): Booking | null {
+  if (booking) {
+    return booking;
+  }
+
+  if (!service) {
+    return null;
+  }
+
+  const timestamp = new Date().toISOString();
+
+  return {
+    id: "preview_booking",
+    businessId: business.id,
+    serviceId: service.id,
+    customerName: "לקוח לדוגמה",
+    customerPhone: "050-0000000",
+    notes: "",
+    date: getToday(),
+    startTime: "10:00",
+    endTime: "10:45",
+    status: "confirmed",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+}
+
+function ToggleCard({
+  title,
+  text,
+  checked,
+  onChange,
+}: {
+  title: string;
+  text: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className={`grid cursor-pointer gap-3 rounded-[8px] border p-4 ${checked ? "border-primary bg-[#e8f3ef]" : "border-line bg-white"}`}>
+      <span className="flex items-start justify-between gap-3">
+        <span>
+          <span className="block font-extrabold text-foreground">{title}</span>
+          <span className="mt-1 block text-sm leading-6 text-muted">{text}</span>
+        </span>
+        <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="mt-1 size-5 accent-[var(--primary)]" />
+      </span>
+    </label>
+  );
+}
+
+function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-[8px] border border-line bg-[#f4f7f5] p-4 font-extrabold">
+      <span>{label}</span>
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="size-5 accent-[var(--primary)]" />
+    </label>
+  );
+}
+
+function TemplateField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="grid gap-2 text-sm font-bold text-foreground">
+      {label}
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="focus-ring min-h-28 rounded-[8px] border border-line bg-white px-3 py-3 leading-7"
+      />
+    </label>
+  );
+}
+
+function MessagePreview({ title, message }: { title: string; message: string }) {
+  return (
+    <div className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="font-extrabold">{title}</p>
+        <span className="w-fit rounded-full bg-[#e8f3ef] px-3 py-1 text-xs font-extrabold text-primary">אוטומטי</span>
+      </div>
+      <pre className="whitespace-pre-wrap rounded-[8px] bg-white p-3 text-right text-sm leading-6 text-foreground">{message}</pre>
+    </div>
+  );
+}
+
+function EditableMessage({
+  title,
+  editLabel,
+  value,
+  message,
+  onChange,
+}: {
+  title: string;
+  editLabel: string;
+  value: string;
+  message: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="grid gap-3">
+      <MessagePreview title={title} message={message} />
+      <details className="rounded-[8px] border border-line bg-white p-3">
+        <summary className="focus-ring cursor-pointer rounded-[8px] text-sm font-extrabold text-primary">{editLabel}</summary>
+        <div className="mt-3 grid gap-2">
+          <TemplateField label="נוסח כללי" value={value} onChange={onChange} />
+          <p className="text-xs font-bold leading-5 text-muted">
+            שם הלקוח, שם העסק, השירות, התאריך, השעה והקישור מתווספים אוטומטית לכל הודעה.
+          </p>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function SummaryBlock({ title, summary }: { title: string; summary: AssistantSummary }) {
+  const items = [
+    ["הזמנות חדשות", summary.newBookings],
+    ["הזמנות שהושלמו", summary.completedBookings],
+    ["ביטולים", summary.cancelledBookings],
+    ["לא הגיעו", summary.noShows],
+    ["תורים קרובים", summary.upcomingAppointments],
+    ["רשימת המתנה", summary.waitlistCount],
+  ];
+
+  return (
+    <div className="rounded-[8px] border border-line bg-[#f4f7f5] p-4">
+      <p className="mb-3 text-lg font-extrabold">{title}</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {items.map(([label, value]) => (
+          <div key={label} className="rounded-[8px] bg-white p-3">
+            <p className="text-xs font-bold text-muted">{label}</p>
+            <p className="mt-1 text-2xl font-extrabold text-foreground">{value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

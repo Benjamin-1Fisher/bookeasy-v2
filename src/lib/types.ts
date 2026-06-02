@@ -1,10 +1,34 @@
-export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
 
 export type DemoRequestStatus = "new" | "contacted" | "closed";
 
 export type AvailabilityExceptionType = "closed" | "extra_open";
 
 export type BusinessCategory = "barber" | "nails" | "clinic" | "fitness" | "other";
+
+export type AssistantSettings = {
+  confirmationEnabled: boolean;
+  remindersEnabled: boolean;
+  reminder24hEnabled: boolean;
+  reminder3hEnabled: boolean;
+  reminderTemplate: string;
+  cancellationFollowUpEnabled: boolean;
+  cancellationFollowUpTemplate: string;
+  noShowFollowUpEnabled: boolean;
+  noShowFollowUpTemplate: string;
+  waitlistEnabled: boolean;
+  waitlistMessageTemplate: string;
+  dailySummaryEnabled: boolean;
+  weeklySummaryEnabled: boolean;
+};
+
+export type FaqTemplates = {
+  prices: string;
+  location: string;
+  openingHours: string;
+  cancellationPolicy: string;
+  reschedule: string;
+};
 
 export type Business = {
   id: string;
@@ -24,6 +48,8 @@ export type Business = {
   coverSubtitle: string;
   coverImageUrl?: string;
   coverTone: "teal" | "rose" | "blue";
+  assistantSettings: AssistantSettings;
+  faqTemplates: FaqTemplates;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -74,6 +100,40 @@ export type Booking = {
   updatedAt: string;
 };
 
+export type WaitlistStatus = "waiting" | "contacted" | "closed";
+
+export type WaitlistEntry = {
+  id: string;
+  businessId: string;
+  serviceId?: string;
+  customerName: string;
+  customerPhone: string;
+  preferredDate?: string;
+  notes?: string;
+  status: WaitlistStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AssistantMessageType = "confirmation" | "reminder_24h" | "reminder_3h" | "cancellation" | "no_show" | "waitlist";
+
+export type AssistantMessageStatus = "ready" | "scheduled" | "sent";
+
+export type AssistantMessage = {
+  id: string;
+  businessId: string;
+  bookingId?: string;
+  waitlistEntryId?: string;
+  type: AssistantMessageType;
+  recipientName: string;
+  recipientPhone: string;
+  body: string;
+  status: AssistantMessageStatus;
+  scheduledFor?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type DemoRequest = {
   id: string;
   ownerName: string;
@@ -100,6 +160,8 @@ export type BookeasyStore = {
   availabilityRules: AvailabilityRule[];
   availabilityExceptions: AvailabilityException[];
   bookings: Booking[];
+  waitlistEntries: WaitlistEntry[];
+  assistantMessages: AssistantMessage[];
   demoRequests: DemoRequest[];
   users: User[];
 };

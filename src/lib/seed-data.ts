@@ -1,3 +1,4 @@
+import { createDefaultAssistantSettings, createDefaultFaqTemplates } from "@/lib/assistant";
 import type { BookeasyStore } from "@/lib/types";
 
 const now = "2026-05-25T07:00:00.000Z";
@@ -23,6 +24,8 @@ export const seedStore: BookeasyStore = {
       coverSubtitle: "שעות פנויות, מחירים ושירותים בלינק אחד",
       coverImageUrl: "",
       coverTone: "teal",
+      assistantSettings: createDefaultAssistantSettings(),
+      faqTemplates: createDefaultFaqTemplates(),
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -46,6 +49,8 @@ export const seedStore: BookeasyStore = {
       coverSubtitle: "בחירת שירות, מחיר ושעה פנויה בכמה לחיצות",
       coverImageUrl: "",
       coverTone: "rose",
+      assistantSettings: createDefaultAssistantSettings(),
+      faqTemplates: createDefaultFaqTemplates(),
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -69,6 +74,8 @@ export const seedStore: BookeasyStore = {
       coverSubtitle: "הלקוח בוחר שעה, והתור נכנס ללוח",
       coverImageUrl: "",
       coverTone: "blue",
+      assistantSettings: createDefaultAssistantSettings(),
+      faqTemplates: createDefaultFaqTemplates(),
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -277,6 +284,21 @@ export const seedStore: BookeasyStore = {
       updatedAt: now,
     },
   ],
+  waitlistEntries: [
+    {
+      id: "wait_demo_1",
+      businessId: "biz_barber",
+      serviceId: "srv_barber_combo",
+      customerName: "נועה ישראל",
+      customerPhone: "050-5555555",
+      preferredDate: "2026-06-01",
+      notes: "מחפשת תור אחר הצהריים אם מתפנה.",
+      status: "waiting",
+      createdAt: now,
+      updatedAt: now,
+    },
+  ],
+  assistantMessages: [],
   demoRequests: [
     {
       id: "demo_req_1",

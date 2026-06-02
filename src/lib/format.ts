@@ -7,6 +7,7 @@ export const bookingStatusLabels: Record<BookingStatus, string> = {
   confirmed: "נקבע",
   cancelled: "בוטל",
   completed: "הושלם",
+  no_show: "הלקוח לא הגיע",
 };
 
 export const demoStatusLabels: Record<DemoRequestStatus, string> = {
@@ -52,9 +53,9 @@ export function todayKey() {
 
 export function getBusinessToneClasses(tone: "teal" | "rose" | "blue") {
   const tones = {
-    teal: "from-[#0d3032] via-[#0d6b62] to-[#9fb6a6]",
-    rose: "from-[#321d28] via-[#8f4e66] to-[#d2a37f]",
-    blue: "from-[#102f34] via-[#315d70] to-[#9bb8bd]",
+    teal: "from-[#030711] via-[#0b1f44] to-[#2563eb]",
+    rose: "from-[#030711] via-[#171338] to-[#3b82f6]",
+    blue: "from-[#030711] via-[#071a35] to-[#1d4ed8]",
   };
 
   return tones[tone];
